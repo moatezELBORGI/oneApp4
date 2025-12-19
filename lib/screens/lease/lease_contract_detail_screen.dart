@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../models/lease_contract_model.dart';
 import '../../services/lease_contract_service.dart';
 import '../../widgets/signature_pad_widget.dart';
@@ -17,6 +18,7 @@ class _LeaseContractDetailScreenState extends State<LeaseContractDetailScreen> {
   LeaseContractModel? _contract;
   bool _isLoading = true;
   bool _isSigning = false;
+  bool _isGeneratingPdf = false;
 
   @override
   void initState() {
@@ -80,6 +82,40 @@ class _LeaseContractDetailScreenState extends State<LeaseContractDetailScreen> {
     );
   }
 
+  Future<void> _generateAndOpenPdf() async {
+    setState(() => _isGeneratingPdf = true);
+    try {
+      final pdfUrl = await _leaseService.generateContractPdf(widget.contractId);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('PDF généré avec succès')),
+        );
+
+        final Uri url = Uri.parse(pdfUrl);
+        if (await canLaunchUrl(url)) {
+          await launchUrl(url, mode: LaunchMode.externalApplication);
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Impossible d\'ouvrir le PDF: $pdfUrl')),
+            );
+          }
+        }
+      }
+
+      _loadContract();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur lors de la génération du PDF: $e')),
+        );
+      }
+    } finally {
+      setState(() => _isGeneratingPdf = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -100,6 +136,21 @@ class _LeaseContractDetailScreenState extends State<LeaseContractDetailScreen> {
       appBar: AppBar(
         title: const Text('Contrat de Bail'),
         elevation: 0,
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _isGeneratingPdf ? null : _generateAndOpenPdf,
+        icon: _isGeneratingPdf
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
+            : const Icon(Icons.picture_as_pdf),
+        label: Text(_isGeneratingPdf ? 'Génération...' : 'Générer PDF'),
+        backgroundColor: _isGeneratingPdf ? Colors.grey : Colors.red,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -252,6 +303,60 @@ class _LeaseContractDetailScreenState extends State<LeaseContractDetailScreen> {
                 ),
               ),
             ),
+            if (_contract!.pdfUrl != null && _contract!.pdfUrl!.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Card(
+                color: Colors.red.shade50,
+                child: InkWell(
+                  onTap: () async {
+                    try {
+                      final Uri url = Uri.parse(_contract!.pdfUrl!);
+                      if (await canLaunchUrl(url)) {
+                        await launchUrl(url, mode: LaunchMode.externalApplication);
+                      }
+                    } catch (e) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Erreur: $e')),
+                        );
+                      }
+                    }
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.picture_as_pdf, color: Colors.red, size: 40),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'PDF du Contrat',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Cliquez pour ouvrir le PDF',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(Icons.arrow_forward_ios, color: Colors.grey),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
             if (_contract!.indexations.isNotEmpty) ...[
               const SizedBox(height: 16),
               Card(

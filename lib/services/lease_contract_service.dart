@@ -136,4 +136,18 @@ class LeaseContractService {
       throw Exception('Failed to index rent: ${response.body}');
     }
   }
+
+  Future<String> generateContractPdf(String contractId) async {
+    final headers = await _getHeaders();
+    final response = await http.post(
+      Uri.parse('${Constants.baseUrl}/lease-contracts/$contractId/generate-pdf'),
+      headers: headers,
+    );
+
+    if (response.statusCode == 200) {
+      return response.body;
+    } else {
+      throw Exception('Failed to generate PDF: ${response.body}');
+    }
+  }
 }

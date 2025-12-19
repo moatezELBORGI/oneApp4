@@ -88,4 +88,15 @@ public class LeaseContractController {
         RentIndexationDto indexation = leaseContractService.indexRent(contractId, indexationRate, baseIndex, newIndex, notes);
         return ResponseEntity.ok(indexation);
     }
+
+    @PostMapping("/{contractId}/generate-pdf")
+    @Operation(summary = "Generate PDF for lease contract")
+    public ResponseEntity<String> generateContractPdf(@PathVariable UUID contractId) {
+        try {
+            String pdfUrl = leaseContractService.generateContractPdf(contractId);
+            return ResponseEntity.ok(pdfUrl);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Error generating PDF: " + e.getMessage());
+        }
+    }
 }

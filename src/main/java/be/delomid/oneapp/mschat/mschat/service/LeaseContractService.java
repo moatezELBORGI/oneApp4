@@ -25,6 +25,7 @@ public class LeaseContractService {
     private final ResidentRepository residentRepository;
     private final RentIndexationRepository rentIndexationRepository;
     private final LeaseContractCustomSectionRepository customSectionRepository;
+    private final PdfLeaseContractGenerationService pdfGenerationService;
 
     @Transactional
     public LeaseContractDto createContract(CreateLeaseContractRequest request) {
@@ -165,6 +166,23 @@ public class LeaseContractService {
         leaseContractRepository.save(contract);
 
         return convertIndexationToDto(indexation);
+    }
+
+    public String generateContractPdf(UUID contractId) {
+        try {
+            String pdfUrl = pdfGenerationService.generateLeaseContractPdf(contractId);
+
+            LeaseContract contract = leaseContractRepository.findById(contractId)
+                    .orElseThrow(() -> new RuntimeException("Contract not found"));
+
+            contract.setPdfUrl(pdfUrl);
+            leaseContractRepository.save(contract);
+
+            return pdfUrl;
+        } catch (Exception e) {
+            log.error("Error generating PDF for contract: {}", contractId, e);
+            throw new RuntimeException("Failed to generate PDF: " + e.getMessage(), e);
+        }
     }
 
     private LeaseContractDto convertToDto(LeaseContract contract) {
