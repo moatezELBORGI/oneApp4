@@ -23,6 +23,7 @@ import 'screens/splash_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/main_screen.dart';
 import 'screens/auth/building_selection_screen.dart';
+import 'screens/lease/create_contract_screen.dart';
 import 'utils/app_theme.dart';
 import 'utils/constants.dart';
 final webSocket = WebSocketService();
@@ -79,6 +80,15 @@ class MGIApp extends StatelessWidget {
           '/login': (context) => const LoginScreen(),
           '/main': (context) => const MainScreen(),
           '/building-selection': (context) => const BuildingSelectionScreen(),
+        },
+        onGenerateRoute: (settings) {
+          if (settings.name == '/create-contract') {
+            final apartmentId = settings.arguments as String;
+            return MaterialPageRoute(
+              builder: (context) => CreateContractScreen(apartmentId: apartmentId),
+            );
+          }
+          return null;
         },
         builder: (context, child) {
           return MediaQuery(
