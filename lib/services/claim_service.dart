@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:mime/mime.dart';
+import 'package:http_parser/http_parser.dart';
 import '../models/claim_model.dart';
 import '../utils/constants.dart';
 import 'storage_service.dart';
@@ -52,8 +54,15 @@ class ClaimService {
 
       if (photos != null && photos.isNotEmpty) {
         for (var photo in photos) {
+          final mimeType = lookupMimeType(photo.path) ?? 'image/jpeg';
+          final mimeTypeParts = mimeType.split('/');
+
           request.files.add(
-            await http.MultipartFile.fromPath('photos', photo.path),
+            await http.MultipartFile.fromPath(
+              'photos',
+              photo.path,
+              contentType: MediaType(mimeTypeParts[0], mimeTypeParts[1]),
+            ),
           );
         }
       }

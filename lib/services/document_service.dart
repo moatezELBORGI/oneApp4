@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:mime/mime.dart';
+import 'package:http_parser/http_parser.dart';
 import 'package:file_picker/file_picker.dart';
 import '../models/folder_model.dart';
 import '../models/document_model.dart';
@@ -116,8 +118,15 @@ class DocumentService {
 
       request.headers['Authorization'] = 'Bearer $token';
 
+      final mimeType = lookupMimeType(file.path) ?? 'application/octet-stream';
+      final mimeTypeParts = mimeType.split('/');
+
       request.files.add(
-        await http.MultipartFile.fromPath('file', file.path),
+        await http.MultipartFile.fromPath(
+          'file',
+          file.path,
+          contentType: MediaType(mimeTypeParts[0], mimeTypeParts[1]),
+        ),
       );
 
       if (description != null && description.isNotEmpty) {

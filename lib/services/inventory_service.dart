@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:mime/mime.dart';
+import 'package:http_parser/http_parser.dart';
 import '../models/inventory_model.dart';
 import '../utils/constants.dart';
 import 'storage_service.dart';
@@ -143,11 +145,20 @@ class InventoryService {
     );
 
     request.headers['Authorization'] = 'Bearer $token';
-    request.files.add(await http.MultipartFile.fromPath('file', file.path));
+
+    final mimeType = lookupMimeType(file.path) ?? 'image/jpeg';
+    final mimeTypeParts = mimeType.split('/');
+
+    request.files.add(await http.MultipartFile.fromPath(
+      'file',
+      file.path,
+      contentType: MediaType(mimeTypeParts[0], mimeTypeParts[1]),
+    ));
 
     final response = await request.send();
     if (response.statusCode != 200) {
-      throw Exception('Failed to upload photo');
+      final responseBody = await response.stream.bytesToString();
+      throw Exception('Failed to upload photo: $responseBody');
     }
   }
 
