@@ -26,13 +26,13 @@ public class DataInitializationService implements CommandLineRunner {
     private final BuildingRepository buildingRepository;
     private final ApartmentRepository apartmentRepository;
     private final ResidentBuildingRepository residentBuildingRepository;
-     private final PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
     private final AppConfig appConfig;
     private final FaqTopicRepository faqTopicRepository;
     private final LeaseContractRepository leaseContractRepository;
     private final ApartmentRoomRepository apartmentRoomRepository;
     private final LeaseContractArticleRepository leaseContractArticleRepository;
-     @Override
+    @Override
     @Transactional
     public void run(String... args) {
         log.info("Initializing application data...");
@@ -40,7 +40,7 @@ public class DataInitializationService implements CommandLineRunner {
         initializeCountries();
         initializeSuperAdmin();
         initializeTestData();
-         initFaqData();
+        initFaqData();
         initializeOwnerTenantData();
 
         log.info("Application data initialization completed");
@@ -433,124 +433,124 @@ public class DataInitializationService implements CommandLineRunner {
             log.info("  - Siamak Miandarbandi (resident, no apt) - same as Liège ADMIN");
         }
     }
-private void initFaqData()
-{
-    String buildingId = "BEL-2024-IT-BRUXELLES";
+    private void initFaqData()
+    {
+        String buildingId = "BEL-2024-IT-BRUXELLES";
 
-    buildingRepository.findById(buildingId).ifPresent(building -> {
+        buildingRepository.findById(buildingId).ifPresent(building -> {
 
-        // si ce building a déjà des FAQ, on ne refait rien
-        if (!faqTopicRepository.findFaqTopicByBuilding(building).isEmpty()) {
-            return;
-        }
-        // =======================
-        //  Building Rules
-        // =======================
-        FaqTopic buildingRules = new FaqTopic();
-        buildingRules.setName("Building Rules");
-        buildingRules.setIcon("apartment_rounded");
-        buildingRules.setBuilding(building);
-        buildingRules.setQuestions(new ArrayList<>());
+            // si ce building a déjà des FAQ, on ne refait rien
+            if (!faqTopicRepository.findFaqTopicByBuilding(building).isEmpty()) {
+                return;
+            }
+            // =======================
+            //  Building Rules
+            // =======================
+            FaqTopic buildingRules = new FaqTopic();
+            buildingRules.setName("Building Rules");
+            buildingRules.setIcon("apartment_rounded");
+            buildingRules.setBuilding(building);
+            buildingRules.setQuestions(new ArrayList<>());
 
-        FaqQuestion brQ1 = new FaqQuestion();
-        brQ1.setQuestion("Puis-je avoir des animaux de compagnie ?");
-        brQ1.setAnswer("Oui, sous conditions.");
-        brQ1.setTopic(buildingRules);
-        buildingRules.getQuestions().add(brQ1);
+            FaqQuestion brQ1 = new FaqQuestion();
+            brQ1.setQuestion("Puis-je avoir des animaux de compagnie ?");
+            brQ1.setAnswer("Oui, sous conditions.");
+            brQ1.setTopic(buildingRules);
+            buildingRules.getQuestions().add(brQ1);
 
-        FaqQuestion brQ2 = new FaqQuestion();
-        brQ2.setQuestion("Y a-t-il des horaires de silence ?");
-        brQ2.setAnswer("Oui, généralement entre 22h et 7h.");
-        brQ2.setTopic(buildingRules);
-        buildingRules.getQuestions().add(brQ2);
+            FaqQuestion brQ2 = new FaqQuestion();
+            brQ2.setQuestion("Y a-t-il des horaires de silence ?");
+            brQ2.setAnswer("Oui, généralement entre 22h et 7h.");
+            brQ2.setTopic(buildingRules);
+            buildingRules.getQuestions().add(brQ2);
 
-        faqTopicRepository.save(buildingRules);
+            faqTopicRepository.save(buildingRules);
 
-        // =======================
-        //  Rent & Payment
-        // =======================
-        FaqTopic rentPayment = new FaqTopic();
-        rentPayment.setName("Rent & Payment");
-        rentPayment.setIcon("payments_rounded");
-        rentPayment.setBuilding(building);
-        rentPayment.setQuestions(new ArrayList<>());
+            // =======================
+            //  Rent & Payment
+            // =======================
+            FaqTopic rentPayment = new FaqTopic();
+            rentPayment.setName("Rent & Payment");
+            rentPayment.setIcon("payments_rounded");
+            rentPayment.setBuilding(building);
+            rentPayment.setQuestions(new ArrayList<>());
 
-        FaqQuestion rpQ1 = new FaqQuestion();
-        rpQ1.setQuestion("Moyens de paiement ?");
-        rpQ1.setAnswer("Virement, carte, prélèvement.");
-        rpQ1.setTopic(rentPayment);
-        rentPayment.getQuestions().add(rpQ1);
+            FaqQuestion rpQ1 = new FaqQuestion();
+            rpQ1.setQuestion("Moyens de paiement ?");
+            rpQ1.setAnswer("Virement, carte, prélèvement.");
+            rpQ1.setTopic(rentPayment);
+            rentPayment.getQuestions().add(rpQ1);
 
-        faqTopicRepository.save(rentPayment);
+            faqTopicRepository.save(rentPayment);
 
-        // =======================
-        //  Maintenance
-        // =======================
-        FaqTopic maintenance = new FaqTopic();
-        maintenance.setName("Maintenance");
-        maintenance.setIcon("build_rounded");
-        maintenance.setBuilding(building);
-        maintenance.setQuestions(new ArrayList<>());
+            // =======================
+            //  Maintenance
+            // =======================
+            FaqTopic maintenance = new FaqTopic();
+            maintenance.setName("Maintenance");
+            maintenance.setIcon("build_rounded");
+            maintenance.setBuilding(building);
+            maintenance.setQuestions(new ArrayList<>());
 
-        FaqQuestion mQ1 = new FaqQuestion();
-        mQ1.setQuestion("Déclarer un problème ?");
-        mQ1.setAnswer("Depuis l’app, section Maintenance.");
-        mQ1.setTopic(maintenance);
-        maintenance.getQuestions().add(mQ1);
+            FaqQuestion mQ1 = new FaqQuestion();
+            mQ1.setQuestion("Déclarer un problème ?");
+            mQ1.setAnswer("Depuis l’app, section Maintenance.");
+            mQ1.setTopic(maintenance);
+            maintenance.getQuestions().add(mQ1);
 
-        faqTopicRepository.save(maintenance);
+            faqTopicRepository.save(maintenance);
 
-        // =======================
-        //  Documents
-        // =======================
-        FaqTopic documents = new FaqTopic();
-        documents.setName("Documents");
-        documents.setIcon("description_rounded");
-        documents.setBuilding(building);
-        documents.setQuestions(new ArrayList<>());
+            // =======================
+            //  Documents
+            // =======================
+            FaqTopic documents = new FaqTopic();
+            documents.setName("Documents");
+            documents.setIcon("description_rounded");
+            documents.setBuilding(building);
+            documents.setQuestions(new ArrayList<>());
 
-        FaqQuestion dQ1 = new FaqQuestion();
-        dQ1.setQuestion("Où trouver mon contrat ?");
-        dQ1.setAnswer("Dans Mes Documents.");
-        dQ1.setTopic(documents);
-        documents.getQuestions().add(dQ1);
+            FaqQuestion dQ1 = new FaqQuestion();
+            dQ1.setQuestion("Où trouver mon contrat ?");
+            dQ1.setAnswer("Dans Mes Documents.");
+            dQ1.setTopic(documents);
+            documents.getQuestions().add(dQ1);
 
-        faqTopicRepository.save(documents);
+            faqTopicRepository.save(documents);
 
-        // =======================
-        //  Community
-        // =======================
-        FaqTopic community = new FaqTopic();
-        community.setName("Community");
-        community.setIcon("groups_rounded");
-        community.setBuilding(building);
-        community.setQuestions(new ArrayList<>());
+            // =======================
+            //  Community
+            // =======================
+            FaqTopic community = new FaqTopic();
+            community.setName("Community");
+            community.setIcon("groups_rounded");
+            community.setBuilding(building);
+            community.setQuestions(new ArrayList<>());
 
-        FaqQuestion cQ1 = new FaqQuestion();
-        cQ1.setQuestion("Comment sont prises les décisions ?");
-        cQ1.setAnswer("Vote / AG.");
-        cQ1.setTopic(community);
-        community.getQuestions().add(cQ1);
+            FaqQuestion cQ1 = new FaqQuestion();
+            cQ1.setQuestion("Comment sont prises les décisions ?");
+            cQ1.setAnswer("Vote / AG.");
+            cQ1.setTopic(community);
+            community.getQuestions().add(cQ1);
 
-        faqTopicRepository.save(community);
+            faqTopicRepository.save(community);
 
-        // =======================
-        //  General
-        // =======================
-        FaqTopic general = new FaqTopic();
-        general.setName("General");
-        general.setIcon("help_outline_rounded");
-        general.setBuilding(building);
-        general.setQuestions(new ArrayList<>());
+            // =======================
+            //  General
+            // =======================
+            FaqTopic general = new FaqTopic();
+            general.setName("General");
+            general.setIcon("help_outline_rounded");
+            general.setBuilding(building);
+            general.setQuestions(new ArrayList<>());
 
-        FaqQuestion gQ1 = new FaqQuestion();
-        gQ1.setQuestion("Urgence ?");
-        gQ1.setAnswer("Contactez le gardien ou le numéro affiché.");
-        gQ1.setTopic(general);
-        general.getQuestions().add(gQ1);
+            FaqQuestion gQ1 = new FaqQuestion();
+            gQ1.setQuestion("Urgence ?");
+            gQ1.setAnswer("Contactez le gardien ou le numéro affiché.");
+            gQ1.setTopic(general);
+            general.getQuestions().add(gQ1);
 
-        faqTopicRepository.save(general);
-    });
+            faqTopicRepository.save(general);
+        });
     }
 
     private void initializeOwnerTenantData() {

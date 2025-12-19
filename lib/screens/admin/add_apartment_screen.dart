@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../models/building_members_model.dart';
 import '../../services/building_admin_service.dart';
 import '../../utils/app_theme.dart';
 import '../../widgets/custom_button.dart';
@@ -31,7 +32,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
   bool _hasBalcony = false;
   bool _isFurnished = false;
   bool _isLoading = false;
-  List<Map<String, dynamic>>? _buildingMembers;
+  BuildingMembersModel? _buildingMembers;
   String? _selectedOwnerId;
   bool _loadingMembers = false;
 
@@ -207,7 +208,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
             const SizedBox(height: 16),
             if (_loadingMembers)
               const Center(child: CircularProgressIndicator())
-            else if (_buildingMembers != null && _buildingMembers!.isNotEmpty)
+            else if (_buildingMembers != null)
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -239,12 +240,10 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
                             value: null,
                             child: Text('Aucun propriétaire'),
                           ),
-                          ..._buildingMembers!.map((member) {
+                          ..._buildingMembers!.residents.map((member) {
                             return DropdownMenuItem<String>(
-                              value: member['idUsers'],
-                              child: Text(
-                                '${member['fname']} ${member['lname']}',
-                              ),
+                              value: member.id,
+                              child: Text('${member.firstName} ${member.lastName}'),
                             );
                           }).toList(),
                         ],

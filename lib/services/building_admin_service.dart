@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:mgi/services/storage_service.dart';
+import '../models/building_members_model.dart';
 import '../models/building_photo_model.dart';
 import '../models/folder_model.dart';
 import '../utils/constants.dart';
@@ -150,11 +151,11 @@ class BuildingAdminService {
     }
   }
 
-  Future<List<Map<String, dynamic>>> getBuildingMembers(String buildingId) async {
+  Future<BuildingMembersModel> getBuildingMembers(String buildingId) async {
     try {
       final token = await _getToken();
       final response = await http.get(
-        Uri.parse('${Constants.baseUrl}/admin/buildings/$buildingId/members'),
+        Uri.parse('${Constants.baseUrl}/documents/building-members'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -162,8 +163,8 @@ class BuildingAdminService {
       );
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(utf8.decode(response.bodyBytes));
-        return List<Map<String, dynamic>>.from(data);
+        final data = json.decode(response.body);
+        return BuildingMembersModel.fromJson(data);
       } else {
         throw Exception('Failed to load building members');
       }

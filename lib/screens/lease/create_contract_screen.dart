@@ -104,7 +104,7 @@ class _CreateContractScreenState extends State<CreateContractScreen> {
 
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final ownerId = authProvider.user?.idUsers;
+      final ownerId = authProvider.user?.id;
 
       await _contractService.createContract(
         apartmentId: widget.apartmentId,
@@ -159,7 +159,7 @@ class _CreateContractScreenState extends State<CreateContractScreen> {
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final currentUserId = authProvider.user?.idUsers;
+    final currentUserId = authProvider.user?.id;
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,

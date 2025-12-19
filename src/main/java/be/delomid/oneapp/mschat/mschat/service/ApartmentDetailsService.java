@@ -40,7 +40,10 @@ public class ApartmentDetailsService {
                 .orElseThrow(() -> new RuntimeException("Apartment not found"));
 
         String residentId = SecurityContextUtil.getCurrentUserId();
-        verifyResidentHasAccess(residentId, apartment.getBuilding().getBuildingId(), apartmentId);
+        if(!verifyResidentHasAccess(residentId, apartment.getBuilding().getBuildingId(), apartmentId) && !verifyOwnerHasAccess(residentId,apartmentId))
+        {
+            throw new RuntimeException("Access denied");
+        }
 
         ApartmentDetailsDto dto = new ApartmentDetailsDto();
         dto.setApartmentId(apartmentId);
@@ -157,15 +160,19 @@ public class ApartmentDetailsService {
         }
 
     }
+    private boolean verifyOwnerHasAccess(String residentId,  String apartmentId) {
+      Apartment apartment=apartmentRepository.findById(apartmentId).orElseThrow(() -> new RuntimeException("Apartment not found"));
+       return apartment.getOwner().getIdUsers().equals(residentId);
 
-    private void verifyResidentHasAccess(String residentId, String buildingId, String apartmentId) {
+
+    }
+    private boolean verifyResidentHasAccess(String residentId, String buildingId, String apartmentId) {
         ResidentBuilding rb = residentBuildingRepository
                 .findByResidentIdAndBuildingId(residentId, buildingId)
                 .orElseThrow(() -> new RuntimeException("Access denied"));
 
-        if (rb.getApartment().getIdApartment() != null && !rb.getApartment().getIdApartment().equals(apartmentId)) {
-            throw new RuntimeException("You can only manage your own apartment");
-        }
+      return !(rb.getApartment().getIdApartment() != null && !rb.getApartment().getIdApartment().equals(apartmentId));
+
     }
 
     private void updateGeneralInfo(String apartmentId, UpdateApartmentDetailsRequest.GeneralInfoRequest request, String residentId) {
