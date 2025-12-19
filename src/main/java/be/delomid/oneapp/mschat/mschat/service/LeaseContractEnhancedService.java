@@ -22,6 +22,8 @@ public class LeaseContractEnhancedService {
     private final LeaseContractArticleRepository leaseContractArticleRepository;
     private final InventoryRepository inventoryRepository;
     private final ApartmentRepository apartmentRepository;
+    private final ResidentRepository residentRepository;
+    private final ResidentBuildingRepository residentBuildingRepository;
 
     public List<LeaseContractDto> getContractsByApartmentWithInventoryStatus(String apartmentId) {
         return leaseContractRepository.findByApartment_IdApartment(apartmentId)
@@ -40,6 +42,39 @@ public class LeaseContractEnhancedService {
     public boolean canTerminateContract(UUID contractId) {
         Optional<Inventory> exitInventory = inventoryRepository.findByContract_IdAndType(contractId, InventoryType.EXIT);
         return exitInventory.isPresent() && exitInventory.get().getStatus() == InventoryStatus.SIGNED;
+    }
+
+    public List<Object> getNonResidentUsers(String search) {
+        List<Resident> allResidents = residentRepository.findAll();
+        List<String> residentUserIds = residentBuildingRepository.findAll()
+                .stream()
+                .map(rb -> rb.getResident().getIdUsers())
+                .distinct()
+                .collect(Collectors.toList());
+
+        return allResidents.stream()
+                .filter(resident -> !residentUserIds.contains(resident.getIdUsers()))
+                .filter(resident -> {
+                    if (search == null || search.trim().isEmpty()) {
+                        return true;
+                    }
+                    String lowerSearch = search.toLowerCase();
+                    return (resident.getFname() != null && resident.getFname().toLowerCase().contains(lowerSearch)) ||
+                           (resident.getLname() != null && resident.getLname().toLowerCase().contains(lowerSearch)) ||
+                           (resident.getEmail() != null && resident.getEmail().toLowerCase().contains(lowerSearch));
+                })
+                .map(resident -> {
+                    ResidentDto dto = ResidentDto.builder()
+                            .idUsers(resident.getIdUsers())
+                            .fname(resident.getFname())
+                            .lname(resident.getLname())
+                            .email(resident.getEmail())
+                            .phoneNumber(resident.getPhoneNumber())
+                            .picture(resident.getPicture())
+                            .build();
+                    return (Object) dto;
+                })
+                .collect(Collectors.toList());
     }
 
     private LeaseContractDto convertToDtoWithInventoryStatus(LeaseContract contract) {

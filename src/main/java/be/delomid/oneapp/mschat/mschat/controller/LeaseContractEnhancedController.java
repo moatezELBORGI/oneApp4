@@ -42,4 +42,12 @@ public class LeaseContractEnhancedController {
         boolean canTerminate = enhancedService.canTerminateContract(contractId);
         return ResponseEntity.ok(canTerminate);
     }
+
+    @GetMapping("/non-resident-users")
+    @Operation(summary = "Get users who are not residents in any building")
+    public ResponseEntity<List<Object>> getNonResidentUsers(
+            @RequestParam(required = false) String search) {
+        List<Object> users = enhancedService.getNonResidentUsers(search);
+        return ResponseEntity.ok(users);
+    }
 }

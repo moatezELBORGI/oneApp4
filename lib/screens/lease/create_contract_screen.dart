@@ -6,6 +6,7 @@ import '../../services/lease_contract_enhanced_service.dart';
 import '../../utils/app_theme.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
+import '../../widgets/user_avatar.dart';
 
 class CreateContractScreen extends StatefulWidget {
   final String apartmentId;
@@ -27,23 +28,25 @@ class _CreateContractScreenState extends State<CreateContractScreen> {
   final _rentController = TextEditingController();
   final _depositController = TextEditingController();
   final _chargesController = TextEditingController();
+  final _searchController = TextEditingController();
 
   DateTime? _startDate;
   DateTime? _endDate;
-  String? _selectedTenantId;
+  Map<String, dynamic>? _selectedTenant;
   String _regionCode = 'BE-BXL';
 
   bool _isLoading = false;
-  bool _loadingMembers = false;
-  List<Map<String, dynamic>>? _buildingMembers;
-  List<Map<String, dynamic>>? _standardArticles;
+  bool _loadingUsers = false;
+  List<Map<String, dynamic>> _nonResidentUsers = [];
+  List<Map<String, dynamic>> _standardArticles = [];
   List<Map<String, dynamic>> _customSections = [];
+  bool _showUsersList = false;
 
   @override
   void initState() {
     super.initState();
-    _loadBuildingMembers();
     _loadStandardArticles();
+    _loadNonResidentUsers();
   }
 
   @override
@@ -51,31 +54,42 @@ class _CreateContractScreenState extends State<CreateContractScreen> {
     _rentController.dispose();
     _depositController.dispose();
     _chargesController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
-  Future<void> _loadBuildingMembers() async {
-    setState(() => _loadingMembers = true);
+  Future<void> _loadNonResidentUsers({String? search}) async {
+    setState(() => _loadingUsers = true);
     try {
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final buildingId = authProvider.user?.buildingId;
-
-      if (buildingId != null) {
-        final response = await _enhancedService.getBuildingMembers(buildingId);
-        setState(() {
-          _buildingMembers = response;
-          _loadingMembers = false;
-        });
-      }
+      final users = await _enhancedService.getNonResidentUsers(search: search);
+      setState(() {
+        _nonResidentUsers = users;
+        _loadingUsers = false;
+      });
     } catch (e) {
-      setState(() => _loadingMembers = false);
+      setState(() => _loadingUsers = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur: $e')),
+        );
+      }
     }
   }
 
   Future<void> _loadStandardArticles() async {
     try {
       final articles = await _enhancedService.getStandardArticles(_regionCode);
-      setState(() => _standardArticles = articles);
+      setState(() {
+        _standardArticles = articles.map((article) {
+          return {
+            ...article,
+            'isExpanded': false,
+            'isModified': false,
+            'modifiedTitle': article['articleTitle'],
+            'modifiedContent': article['articleContent'],
+          };
+        }).toList();
+      });
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -93,7 +107,7 @@ class _CreateContractScreenState extends State<CreateContractScreen> {
       );
       return;
     }
-    if (_selectedTenantId == null) {
+    if (_selectedTenant == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Veuillez sélectionner un locataire')),
       );
@@ -109,7 +123,7 @@ class _CreateContractScreenState extends State<CreateContractScreen> {
       await _contractService.createContract(
         apartmentId: widget.apartmentId,
         ownerId: ownerId!,
-        tenantId: _selectedTenantId!,
+        tenantId: _selectedTenant!['idUsers'],
         startDate: _startDate!,
         endDate: _endDate,
         initialRentAmount: double.parse(_rentController.text.trim()),
@@ -158,9 +172,6 @@ class _CreateContractScreenState extends State<CreateContractScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final currentUserId = authProvider.user?.id;
-
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
@@ -184,63 +195,150 @@ class _CreateContractScreenState extends State<CreateContractScreen> {
                       style: AppTheme.titleStyle.copyWith(fontSize: 18),
                     ),
                     const SizedBox(height: 16),
-                    if (_loadingMembers)
-                      const Center(child: CircularProgressIndicator())
-                    else if (_buildingMembers != null && _buildingMembers!.isNotEmpty)
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Sélectionner le locataire',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: AppTheme.textPrimary,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Container(
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey.shade300),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: DropdownButtonHideUnderline(
-                              child: DropdownButton<String>(
-                                value: _selectedTenantId,
-                                isExpanded: true,
-                                hint: const Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 16),
-                                  child: Text('Choisir un locataire'),
+                    TextField(
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        labelText: 'Rechercher un utilisateur',
+                        hintText: 'Nom, prénom ou email',
+                        prefixIcon: const Icon(Icons.search),
+                        suffixIcon: _searchController.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear),
+                                onPressed: () {
+                                  setState(() {
+                                    _searchController.clear();
+                                    _showUsersList = false;
+                                  });
+                                  _loadNonResidentUsers();
+                                },
+                              )
+                            : null,
+                        border: const OutlineInputBorder(),
+                      ),
+                      onChanged: (value) {
+                        setState(() => _showUsersList = value.isNotEmpty);
+                        _loadNonResidentUsers(search: value);
+                      },
+                      onTap: () {
+                        setState(() => _showUsersList = true);
+                      },
+                    ),
+                    if (_showUsersList && !_loadingUsers) ...[
+                      const SizedBox(height: 8),
+                      Container(
+                        constraints: const BoxConstraints(maxHeight: 200),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey.shade300),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: _nonResidentUsers.isEmpty
+                            ? const Padding(
+                                padding: EdgeInsets.all(16),
+                                child: Text(
+                                  'Aucun utilisateur trouvé',
+                                  style: TextStyle(color: Colors.grey),
                                 ),
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                                items: [
-                                  DropdownMenuItem<String>(
-                                    value: currentUserId,
-                                    child: Row(
-                                      children: [
-                                        Icon(Icons.person, color: Colors.blue[700], size: 20),
-                                        const SizedBox(width: 8),
-                                        const Text('Moi-même (propriétaire occupant)'),
-                                      ],
+                              )
+                            : ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: _nonResidentUsers.length,
+                                itemBuilder: (context, index) {
+                                  final user = _nonResidentUsers[index];
+                                  return ListTile(
+                                    leading: UserAvatar(
+                                      imageUrl: user['picture'],
+                                      name: '${user['fname']} ${user['lname']}',
+                                      radius: 20,
                                     ),
-                                  ),
-                                  ..._buildingMembers!.map((member) {
-                                    return DropdownMenuItem<String>(
-                                      value: member['idUsers'],
-                                      child: Text(
-                                        '${member['fname']} ${member['lname']}',
-                                      ),
-                                    );
-                                  }).toList(),
-                                ],
-                                onChanged: (String? value) {
-                                  setState(() => _selectedTenantId = value);
+                                    title: Text('${user['fname']} ${user['lname']}'),
+                                    subtitle: Text(user['email'] ?? ''),
+                                    onTap: () {
+                                      setState(() {
+                                        _selectedTenant = user;
+                                        _searchController.text = '${user['fname']} ${user['lname']}';
+                                        _showUsersList = false;
+                                      });
+                                    },
+                                  );
                                 },
                               ),
-                            ),
-                          ),
-                        ],
                       ),
+                    ],
+                    if (_loadingUsers) ...[
+                      const SizedBox(height: 16),
+                      const Center(child: CircularProgressIndicator()),
+                    ],
+                    if (_selectedTenant != null) ...[
+                      const SizedBox(height: 16),
+                      const Divider(),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Locataire sélectionné',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.shade50,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.blue.shade200),
+                        ),
+                        child: Row(
+                          children: [
+                            UserAvatar(
+                              imageUrl: _selectedTenant!['picture'],
+                              name: '${_selectedTenant!['fname']} ${_selectedTenant!['lname']}',
+                              radius: 25,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${_selectedTenant!['fname']} ${_selectedTenant!['lname']}',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  if (_selectedTenant!['email'] != null)
+                                    Text(
+                                      _selectedTenant!['email'],
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey[700],
+                                      ),
+                                    ),
+                                  if (_selectedTenant!['phoneNumber'] != null)
+                                    Text(
+                                      _selectedTenant!['phoneNumber'],
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey[700],
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.close, color: Colors.red),
+                              onPressed: () {
+                                setState(() {
+                                  _selectedTenant = null;
+                                  _searchController.clear();
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -332,25 +430,171 @@ class _CreateContractScreenState extends State<CreateContractScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            if (_standardArticles != null) ...[
+            if (_standardArticles.isNotEmpty) ...[
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Articles standards du contrat',
-                        style: AppTheme.titleStyle.copyWith(fontSize: 18),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Articles standards du contrat',
+                                  style: AppTheme.titleStyle.copyWith(fontSize: 18),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Cliquez sur un article pour le voir et le modifier',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        '${_standardArticles!.length} articles seront inclus dans le contrat',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                        ),
-                      ),
+                      const SizedBox(height: 16),
+                      ..._standardArticles.asMap().entries.map((entry) {
+                        final index = entry.key;
+                        final article = entry.value;
+                        final isExpanded = article['isExpanded'] ?? false;
+                        final isModified = article['isModified'] ?? false;
+
+                        return Card(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          color: isModified ? Colors.orange.shade50 : null,
+                          child: Column(
+                            children: [
+                              ListTile(
+                                leading: CircleAvatar(
+                                  backgroundColor: isModified
+                                      ? Colors.orange
+                                      : AppTheme.primaryColor,
+                                  child: Text(
+                                    '${index + 1}',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                title: Text(
+                                  article['articleTitle'] ?? '',
+                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                subtitle: article['isMandatory'] == true
+                                    ? const Text(
+                                        'Obligatoire',
+                                        style: TextStyle(
+                                          color: Colors.red,
+                                          fontSize: 12,
+                                        ),
+                                      )
+                                    : null,
+                                trailing: Icon(
+                                  isExpanded ? Icons.expand_less : Icons.expand_more,
+                                ),
+                                onTap: () {
+                                  setState(() {
+                                    article['isExpanded'] = !isExpanded;
+                                  });
+                                },
+                              ),
+                              if (isExpanded)
+                                Padding(
+                                  padding: const EdgeInsets.all(16),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      if (isModified)
+                                        Container(
+                                          padding: const EdgeInsets.all(8),
+                                          margin: const EdgeInsets.only(bottom: 12),
+                                          decoration: BoxDecoration(
+                                            color: Colors.orange.shade100,
+                                            borderRadius: BorderRadius.circular(4),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              const Icon(
+                                                Icons.edit,
+                                                size: 16,
+                                                color: Colors.orange,
+                                              ),
+                                              const SizedBox(width: 8),
+                                              const Expanded(
+                                                child: Text(
+                                                  'Cet article a été modifié',
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    color: Colors.orange,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ),
+                                              ),
+                                              TextButton(
+                                                onPressed: () {
+                                                  setState(() {
+                                                    article['modifiedTitle'] = article['articleTitle'];
+                                                    article['modifiedContent'] = article['articleContent'];
+                                                    article['isModified'] = false;
+                                                  });
+                                                },
+                                                child: const Text(
+                                                  'Réinitialiser',
+                                                  style: TextStyle(fontSize: 12),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      TextField(
+                                        controller: TextEditingController(
+                                          text: article['modifiedTitle'] ?? article['articleTitle'],
+                                        ),
+                                        decoration: const InputDecoration(
+                                          labelText: 'Titre de l\'article',
+                                          border: OutlineInputBorder(),
+                                        ),
+                                        onChanged: (value) {
+                                          setState(() {
+                                            article['modifiedTitle'] = value;
+                                            article['isModified'] = true;
+                                          });
+                                        },
+                                      ),
+                                      const SizedBox(height: 12),
+                                      TextField(
+                                        controller: TextEditingController(
+                                          text: article['modifiedContent'] ?? article['articleContent'],
+                                        ),
+                                        decoration: const InputDecoration(
+                                          labelText: 'Contenu de l\'article',
+                                          border: OutlineInputBorder(),
+                                        ),
+                                        maxLines: 6,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            article['modifiedContent'] = value;
+                                            article['isModified'] = true;
+                                          });
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
                     ],
                   ),
                 ),

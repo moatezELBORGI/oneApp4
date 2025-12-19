@@ -94,4 +94,30 @@ class LeaseContractEnhancedService {
       throw Exception('Error loading building members: $e');
     }
   }
+
+  Future<List<Map<String, dynamic>>> getNonResidentUsers({String? search}) async {
+    try {
+      final token = await _getToken();
+      final uri = search != null && search.isNotEmpty
+          ? Uri.parse('${Constants.baseUrl}/lease-contracts-enhanced/non-resident-users?search=$search')
+          : Uri.parse('${Constants.baseUrl}/lease-contracts-enhanced/non-resident-users');
+
+      final response = await http.get(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(utf8.decode(response.bodyBytes));
+        return List<Map<String, dynamic>>.from(data);
+      } else {
+        throw Exception('Failed to load non-resident users');
+      }
+    } catch (e) {
+      throw Exception('Error loading non-resident users: $e');
+    }
+  }
 }
