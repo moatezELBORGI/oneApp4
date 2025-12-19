@@ -1,0 +1,304 @@
+package be.delomid.oneapp.mschat.mschat.service;
+
+import be.delomid.oneapp.mschat.mschat.dto.CallDto;
+import be.delomid.oneapp.mschat.mschat.dto.MessageDto;
+import be.delomid.oneapp.mschat.mschat.model.*;
+import be.delomid.oneapp.mschat.mschat.repository.*;
+import be.delomid.oneapp.mschat.mschat.util.PictureUrlUtil;
+import lombok.RequiredArgsConstructor;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class CallService {
+
+    private final CallRepository callRepository;
+    private final ChannelRepository channelRepository;
+    private final ResidentRepository residentRepository;
+    private final MessageRepository messageRepository;
+    private final SimpMessagingTemplate messagingTemplate;
+    private final org.springframework.messaging.simp.user.SimpUserRegistry simpUserRegistry;
+    private final NotificationService notificationService;
+    private final FCMService fcmService;
+
+    @Transactional
+    public CallDto initiateCall(String callerId, Long channelId, String receiverId) {
+        Channel channel = channelRepository.findById(channelId)
+                .orElseThrow(() -> new RuntimeException("Channel not found"));
+
+        Resident caller = residentRepository.findById(callerId)
+                .orElseThrow(() -> new RuntimeException("Caller not found"));
+
+        Resident receiver = residentRepository.findById(receiverId)
+                .orElseThrow(() -> new RuntimeException("Receiver not found"));
+
+        Call call = new Call();
+        call.setChannel(channel);
+        call.setCaller(caller);
+        call.setReceiver(receiver);
+        call.setStatus(CallStatus.INITIATED);
+        call = callRepository.save(call);
+
+        CallDto callDto = convertToDto(call);
+
+        System.out.println("=== CALL INITIATION DEBUG ===");
+        System.out.println("Caller ID: " + callerId);
+        System.out.println("Receiver ID: " + receiverId);
+        System.out.println("Channel ID: " + channelId);
+        System.out.println("Sending call notification to destination: /user/" + receiverId + "/queue/call");
+        System.out.println("Call DTO status: " + callDto.getStatus());
+
+        // Log connected users
+        System.out.println("--- Connected WebSocket Users ---");
+        simpUserRegistry.getUsers().forEach(user -> {
+            System.out.println("User: " + user.getName() + " | Sessions: " + user.getSessions().size());
+            user.getSessions().forEach(session -> {
+                System.out.println("  Session ID: " + session.getId());
+            });
+        });
+        System.out.println("--- Total connected users: " + simpUserRegistry.getUserCount() + " ---");
+
+        // Check if receiver is connected
+        var receiverUser = simpUserRegistry.getUser(receiverId);
+        if (receiverUser != null) {
+            System.out.println("✓ Receiver IS connected with " + receiverUser.getSessions().size() + " session(s)");
+        } else {
+            System.out.println("✗ Receiver NOT found in connected users!");
+        }
+
+        try {
+            messagingTemplate.convertAndSendToUser(
+                    receiverId,
+                    "/queue/call",
+                    callDto
+            );
+            System.out.println("Call notification sent successfully via WebSocket");
+        } catch (Exception e) {
+            System.err.println("ERROR sending call notification: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        // Envoyer également une notification FCM comme fallback
+        try {
+            String receiverFcmToken = receiver.getFcmToken();
+            if (receiverFcmToken != null && !receiverFcmToken.isEmpty()) {
+                System.out.println("Sending FCM notification to receiver token: " + receiverFcmToken);
+                fcmService.sendIncomingCallNotification(
+                        receiverFcmToken,
+                        callerId,
+                        caller.getFname() + " " + caller.getLname(),
+                        PictureUrlUtil.normalizePictureUrl(caller.getPicture()),
+                        call.getId(),
+                        channelId
+                );
+                System.out.println("FCM notification sent successfully");
+            } else {
+                System.out.println("Receiver has no FCM token, skipping FCM notification");
+            }
+        } catch (Exception e) {
+            System.err.println("ERROR sending FCM notification: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        System.out.println("=== END CALL INITIATION DEBUG ===");
+
+        return callDto;
+    }
+
+    @Transactional
+    public CallDto answerCall(Long callId, String userId) {
+        Call call = callRepository.findById(callId)
+                .orElseThrow(() -> new RuntimeException("Call not found"));
+
+        if (!call.getReceiver().getIdUsers().equals(userId)) {
+            throw new RuntimeException("Unauthorized to answer this call");
+        }
+
+        call.setStatus(CallStatus.ANSWERED);
+        call.setStartedAt(LocalDateTime.now());
+        call = callRepository.save(call);
+
+        CallDto callDto = convertToDto(call);
+
+        messagingTemplate.convertAndSendToUser(
+                call.getCaller().getIdUsers(),
+                "/queue/call",
+                callDto
+        );
+
+        return callDto;
+    }
+
+    @Transactional
+    public CallDto endCall(Long callId, String userId) {
+        Call call = callRepository.findById(callId)
+                .orElseThrow(() -> new RuntimeException("Call not found"));
+
+        if (!call.getCaller().getIdUsers().equals(userId) &&
+                !call.getReceiver().getIdUsers().equals(userId)) {
+            throw new RuntimeException("Unauthorized to end this call");
+        }
+
+        call.setStatus(CallStatus.ENDED);
+        call.setEndedAt(LocalDateTime.now());
+
+        if (call.getStartedAt() != null) {
+            Duration duration = Duration.between(call.getStartedAt(), call.getEndedAt());
+            call.setDurationSeconds((int) duration.getSeconds());
+            // Créer un message pour l'appel terminé avec succès
+            createCallMessage(call);
+        } else {
+            // Si l'appel n'a jamais été répondu, c'est un appel manqué
+            call.setStatus(CallStatus.MISSED);
+            createCallMessage(call);
+        }
+
+        call = callRepository.save(call);
+
+        CallDto callDto = convertToDto(call);
+
+        String otherUserId = call.getCaller().getIdUsers().equals(userId)
+                ? call.getReceiver().getIdUsers()
+                : call.getCaller().getIdUsers();
+
+        messagingTemplate.convertAndSendToUser(
+                otherUserId,
+                "/queue/call",
+                callDto
+        );
+
+        return callDto;
+    }
+
+    @Transactional
+    public CallDto rejectCall(Long callId, String userId) {
+        Call call = callRepository.findById(callId)
+                .orElseThrow(() -> new RuntimeException("Call not found"));
+
+        if (!call.getReceiver().getIdUsers().equals(userId)) {
+            throw new RuntimeException("Unauthorized to reject this call");
+        }
+
+        call.setStatus(CallStatus.REJECTED);
+        call = callRepository.save(call);
+
+        // Créer un message d'appel manqué dans le canal
+        createCallMessage(call);
+
+        CallDto callDto = convertToDto(call);
+
+
+        messagingTemplate.convertAndSendToUser(
+                call.getCaller().getIdUsers(),
+                "/queue/call",
+                callDto
+        );
+
+        return callDto;
+    }
+
+    public List<CallDto> getCallHistory(Long channelId, String userId) {
+        List<Call> calls = callRepository.findCallsByChannelAndUser(channelId, userId);
+        return calls.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
+    private void createCallMessage(Call call) {
+        try {
+            String content;
+            if (call.getStatus() == CallStatus.MISSED) {
+                content = "Appel manqué";
+            } else if (call.getStatus() == CallStatus.REJECTED) {
+                content = "Appel refusé";
+            } else if (call.getStatus() == CallStatus.ENDED && call.getDurationSeconds() != null) {
+                content = "Appel terminé";
+            } else {
+                content = "Appel";
+            }
+
+            Message message = Message.builder()
+                    .channel(call.getChannel())
+                    .senderId(call.getCaller().getIdUsers())
+                    .content(content)
+                    .type(MessageType.CALL)
+                    .callId(call.getId())
+                    .isEdited(false)
+                    .isDeleted(false)
+                    .build();
+
+            messageRepository.save(message);
+            notificationService.createNotification(
+                    call.getReceiver().getIdUsers(),
+                    call.getChannel().getBuildingId(),
+                    "Appel manqué",
+                    "Vous avez manqué un appel de :"+ call.getCaller().getFname() +" "+ call.getCaller().getLname(),
+                    "MESSAGE",
+                    call.getChannel().getId(),
+                    null,
+                    null
+            );
+            // Envoyer le message via WebSocket
+        MessageDto messageDto = MessageDto.builder()
+                    .id(message.getId())
+                    .channelId(message.getChannel().getId())
+                    .senderId(message.getSenderId())
+                    .senderFname(call.getCaller().getFname())
+                    .senderLname(call.getCaller().getLname())
+                    .senderPicture(PictureUrlUtil.normalizePictureUrl(call.getCaller().getPicture()))
+                    .content(message.getContent())
+                    .type(message.getType())
+                    .callData(buildCallData(call))
+                    .isEdited(message.getIsEdited())
+                    .isDeleted(message.getIsDeleted())
+                    .createdAt(message.getCreatedAt())
+                    .build();
+
+            messagingTemplate.convertAndSend("/topic/channel/" + call.getChannel().getId(), messageDto);
+        } catch (Exception e) {
+            // Log l'erreur mais ne pas faire échouer l'appel
+            System.err.println("Error creating call message: " + e.getMessage());
+        }
+    }
+
+    private Map<String, Object> buildCallData(Call call) {
+        Map<String, Object> callData = new HashMap<>();
+        callData.put("callId", call.getId());
+        callData.put("status", call.getStatus().name());
+        callData.put("callerId", call.getCaller().getIdUsers());
+        callData.put("callerName", call.getCaller().getFname() + " " + call.getCaller().getLname());
+        callData.put("receiverId", call.getReceiver().getIdUsers());
+        callData.put("receiverName", call.getReceiver().getFname() + " " + call.getReceiver().getLname());
+        callData.put("durationSeconds", call.getDurationSeconds());
+        callData.put("createdAt", call.getCreatedAt());
+        return callData;
+    }
+
+    private CallDto convertToDto(Call call) {
+        CallDto dto = new CallDto();
+        dto.setId(call.getId());
+        dto.setChannelId(call.getChannel().getId());
+        dto.setCallerId(call.getCaller().getIdUsers());
+        dto.setCallerName(call.getCaller().getFname() + " " + call.getCaller().getLname());
+        dto.setCallerAvatar(PictureUrlUtil.normalizePictureUrl(call.getCaller().getPicture()));
+        dto.setReceiverId(call.getReceiver().getIdUsers());
+        dto.setReceiverName(call.getReceiver().getFname() + " " + call.getReceiver().getLname());
+        dto.setReceiverAvatar(PictureUrlUtil.normalizePictureUrl(call.getReceiver().getPicture()));
+        dto.setStartedAt(call.getStartedAt());
+        dto.setEndedAt(call.getEndedAt());
+        dto.setDurationSeconds(call.getDurationSeconds());
+        dto.setStatus(call.getStatus().name());
+        dto.setIsVideoCall(call.getIsVideoCall() != null ? call.getIsVideoCall() : false);
+        dto.setCreatedAt(call.getCreatedAt());
+        return dto;
+    }
+}
