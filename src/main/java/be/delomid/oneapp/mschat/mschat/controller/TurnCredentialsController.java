@@ -48,8 +48,7 @@ public class TurnCredentialsController {
         response.put("ttl", TTL);
         response.put("uris", List.of(
                 "turn:" + TURN_DOMAIN + ":3478?transport=udp",
-                "turn:" + TURN_DOMAIN + ":3478?transport=tcp",
-                "stun:" + TURN_DOMAIN + ":3478"
+                "turn:" + TURN_DOMAIN + ":3478?transport=tcp"
         ));
 
         return ResponseEntity.ok(response);
