@@ -38,6 +38,7 @@ class WebRTCService {
 
   final Map<String, dynamic> _audioOnlyConstraints = {
     'audio': {
+    
       'echoCancellation': true,
       'noiseSuppression': true,
       'autoGainControl': true,
