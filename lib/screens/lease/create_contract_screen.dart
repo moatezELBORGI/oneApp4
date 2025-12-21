@@ -246,9 +246,9 @@ class _CreateContractScreenState extends State<CreateContractScreen> {
                                   final user = _nonResidentUsers[index];
                                   return ListTile(
                                     leading: UserAvatar(
-                                      imageUrl: user['picture'],
-                                      name: '${user['fname']} ${user['lname']}',
-                                      radius: 20,
+                                      profilePictureUrl: user['picture'],
+                                      lastName: '${user['fname']} ${user['lname']}',
+                                      radius: 20, firstName: '',
                                     ),
                                     title: Text('${user['fname']} ${user['lname']}'),
                                     subtitle: Text(user['email'] ?? ''),
@@ -291,9 +291,9 @@ class _CreateContractScreenState extends State<CreateContractScreen> {
                         child: Row(
                           children: [
                             UserAvatar(
-                              imageUrl: _selectedTenant!['picture'],
-                              name: '${_selectedTenant!['fname']} ${_selectedTenant!['lname']}',
-                              radius: 25,
+                              profilePictureUrl: _selectedTenant!['picture'],
+                              lastName: '${_selectedTenant!['fname']} ${_selectedTenant!['lname']}',
+                              radius: 25, firstName: '',
                             ),
                             const SizedBox(width: 12),
                             Expanded(
