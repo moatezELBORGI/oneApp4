@@ -85,6 +85,10 @@ class WebRTCService {
   final List<Map<String, dynamic>> _pendingOutgoingIce = [];
   Timer? _iceBatchTimer;
 
+  // Warmup cache
+  Map<String, dynamic>? _cachedTurnConfig;
+  DateTime? _turnConfigCacheTime;
+
   /// ========================
   /// INITIALISATION
   /// ========================
@@ -100,12 +104,35 @@ class WebRTCService {
     _isInitialized = true;
 
     print('$_tag ✓ WebRTCService initialisé');
+
+    // Warmup: Pré-charger les credentials TURN
+    _warmupTurnConnection();
+  }
+
+  /// Pré-charge les credentials TURN pour éviter le cold start
+  Future<void> _warmupTurnConnection() async {
+    try {
+      print('$_tag Warmup TURN...');
+      await _getTurnConfiguration();
+      print('$_tag ✓ Warmup TURN terminé');
+    } catch (e) {
+      print('$_tag Warmup TURN échoué: $e');
+    }
   }
 
   /// ========================
   /// TURN / STUN CONFIG
   /// ========================
   Future<Map<String, dynamic>> _getTurnConfiguration() async {
+    // Vérifier le cache (TTL: 5 minutes)
+    if (_cachedTurnConfig != null && _turnConfigCacheTime != null) {
+      final age = DateTime.now().difference(_turnConfigCacheTime!);
+      if (age.inSeconds < 300) {
+        print('$_tag ✓ TURN depuis cache (${300 - age.inSeconds}s restant)');
+        return _cachedTurnConfig!;
+      }
+    }
+
     print('$_tag Chargement TURN/STUN...');
     try {
       final token = await StorageService.getToken();
@@ -115,36 +142,47 @@ class WebRTCService {
           Uri.parse('${Constants.baseUrl}/webrtc/turn-credentials'),
           headers: {'Authorization': 'Bearer $token'},
         )
-            .timeout(const Duration(seconds: 10));
+            .timeout(const Duration(seconds: 15));
 
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
           final List<dynamic> uris = data['uris'] ?? [];
           print('$_tag ✓ TURN chargé (${uris.length} URIs, TTL: ${data['ttl']}s)');
+          print('$_tag Username: ${data['username']}');
+          print('$_tag URIs: $uris');
 
-          return {
+          final config = {
             'iceServers': [
+              // Serveurs STUN publics (rapides, toujours disponibles)
+              {'urls': 'stun:stun.l.google.com:19302'},
+              {'urls': 'stun:stun1.l.google.com:19302'},
+              // Serveur TURN avec credentials
               if (uris.isNotEmpty)
                 {
                   'urls': uris,
                   'username': data['username'],
                   'credential': data['password'],
                 },
-              {'urls': 'stun:51.91.99.191:3478'},
-              {'urls': 'stun:stun.l.google.com:19302'},
             ],
           };
+
+          // Mettre en cache
+          _cachedTurnConfig = config;
+          _turnConfigCacheTime = DateTime.now();
+
+          return config;
         }
       }
     } catch (e) {
       print('$_tag Erreur TURN: $e');
     }
 
+    // Fallback: STUN uniquement
+    print('$_tag ⚠ Utilisation STUN uniquement (fallback)');
     return {
       'iceServers': [
         {'urls': 'stun:stun.l.google.com:19302'},
         {'urls': 'stun1.l.google.com:19302'},
-        {'urls': 'stun:51.91.99.191:3478'},
       ],
     };
   }
@@ -186,15 +224,16 @@ class WebRTCService {
   /// ========================
   void _startConnectionTimeout() {
     _connectionTimeoutTimer?.cancel();
-    print('$_tag Timeout démarré (25s)');
-    _connectionTimeoutTimer = Timer(const Duration(seconds: 25), () async {
+    print('$_tag Timeout démarré (45s)');
+    _connectionTimeoutTimer = Timer(const Duration(seconds: 45), () async {
       final connState = _peerConnection?.connectionState;
       final iceState = _peerConnection?.iceConnectionState;
       print('$_tag ⏰ TIMEOUT! ConnState=$connState, IceState=$iceState');
 
       if (connState != RTCPeerConnectionState.RTCPeerConnectionStateConnected) {
-        print('$_tag Tentative de reconnexion avec TURN relay uniquement...');
-        await _forceRelayReconnection();
+        print('$_tag ✗ Échec de connexion après timeout');
+        _callStateController.add(CallState.error);
+        await _cleanup();
       }
     });
   }
@@ -202,44 +241,6 @@ class WebRTCService {
   void _cancelConnectionTimeout() {
     _connectionTimeoutTimer?.cancel();
     _connectionTimeoutTimer = null;
-  }
-
-  Future<void> _forceRelayReconnection() async {
-    print('$_tag === FORCE RELAY RECONNECTION ===');
-
-    // Sauvegarder le stream
-    final savedStream = _localStream;
-
-    // Fermer l'ancien peer connection
-    await _peerConnection?.close();
-    await _peerConnection?.dispose();
-    _peerConnection = null;
-
-    // Reset états
-    _remoteDescriptionSet = false;
-    _pendingIceCandidates.clear();
-    _pendingOutgoingIce.clear();
-
-    // Configuration RELAY ONLY
-    final iceConfig = await _getTurnConfiguration();
-    _configuration = {
-      ...iceConfig,
-      'iceTransportPolicy': 'relay', // FORCE TURN
-      'sdpSemantics': 'unified-plan',
-      'bundlePolicy': 'max-bundle',
-      'rtcpMuxPolicy': 'require',
-    };
-
-    print('$_tag Création PC avec RELAY ONLY');
-    await _setupPeerConnection(savedStream);
-
-    // Restart négociation
-    if (!_polite) {
-      print('$_tag Appelant: nouvelle offre relay');
-      await _makeOffer();
-    }
-
-    _startConnectionTimeout();
   }
 
   /// ========================
@@ -364,14 +365,21 @@ class WebRTCService {
   /// ========================
   /// SETUP PEER CONNECTION
   /// ========================
+  bool _hasRelayCandidates = false;
+  bool _hasAnyCandidates = false;
+
   Future<void> _setupPeerConnection(MediaStream? stream) async {
     if (_configuration == null) {
       throw Exception('Configuration manquante');
     }
 
     print('$_tag Création PeerConnection...');
+    print('$_tag Config ICE: ${_configuration!['iceServers']}');
+
     _peerConnection = await createPeerConnection(_configuration!);
     _peerConnectionCreated = true;
+    _hasRelayCandidates = false;
+    _hasAnyCandidates = false;
 
     // Add tracks
     if (stream != null) {
@@ -385,9 +393,17 @@ class WebRTCService {
 
     _peerConnection!.onIceCandidate = (candidate) {
       if (candidate != null && candidate.candidate != null) {
+        _hasAnyCandidates = true;
         final type = candidate.candidate!.contains('relay') ? 'RELAY' :
         candidate.candidate!.contains('srflx') ? 'SRFLX' : 'HOST';
-        print('$_tag ICE [$type] collecté');
+
+        if (type == 'RELAY') {
+          _hasRelayCandidates = true;
+          print('$_tag 🎯 ICE [$type] collecté - TURN fonctionne!');
+        } else {
+          print('$_tag ICE [$type] collecté');
+        }
+
         _pendingOutgoingIce.add(candidate.toMap());
         _scheduleBatchIceSend();
       }
@@ -396,7 +412,13 @@ class WebRTCService {
     _peerConnection!.onIceGatheringState = (state) {
       print('$_tag ICE Gathering: $state');
       if (state == RTCIceGatheringState.RTCIceGatheringStateComplete) {
-        print('$_tag ✓ ICE Gathering terminé');
+        if (_hasRelayCandidates) {
+          print('$_tag ✓✓✓ ICE Gathering terminé avec RELAY ✓✓✓');
+        } else if (_hasAnyCandidates) {
+          print('$_tag ⚠ ICE Gathering terminé SANS RELAY (STUN/HOST uniquement)');
+        } else {
+          print('$_tag ✗ ICE Gathering terminé SANS CANDIDATS!');
+        }
         _flushPendingIce();
       }
     };
@@ -481,14 +503,15 @@ class WebRTCService {
 
       if (_peerConnection!.signalingState != RTCSignalingState.RTCSignalingStateStable) {
         print('$_tag ⚠ Signaling state non-stable, attente...');
-        await Future.delayed(const Duration(milliseconds: 200));
+        await Future.delayed(const Duration(milliseconds: 300));
       }
 
       await _peerConnection!.setLocalDescription(offer);
       print('$_tag ✓ LocalDescription (offer) définie');
 
-      // Attendre un peu pour collecter les ICE candidates
-      await Future.delayed(const Duration(milliseconds: 300));
+      // Attendre la collecte des ICE candidates (plus long pour TURN)
+      print('$_tag Attente collecte ICE candidates...');
+      await _waitForIceCandidates();
 
       // Envoyer l'offre
       _sendSignal('offer', {'sdp': offer.toMap()});
@@ -501,6 +524,32 @@ class WebRTCService {
       print('$_tag ✗ Erreur makeOffer: $e');
     } finally {
       _makingOffer = false;
+    }
+  }
+
+  /// Attend que des ICE candidates soient collectés (avec timeout)
+  Future<void> _waitForIceCandidates() async {
+    final startTime = DateTime.now();
+    final maxWait = const Duration(seconds: 5);
+
+    while (DateTime.now().difference(startTime) < maxWait) {
+      // Si on a des relay candidates, c'est parfait
+      if (_hasRelayCandidates) {
+        print('$_tag ✓ RELAY candidates collectés (${DateTime.now().difference(startTime).inMilliseconds}ms)');
+        return;
+      }
+
+      // Si on a au moins des candidates après 2s, on continue
+      if (_hasAnyCandidates && DateTime.now().difference(startTime).inSeconds >= 2) {
+        print('$_tag ✓ ICE candidates collectés sans RELAY (${DateTime.now().difference(startTime).inMilliseconds}ms)');
+        return;
+      }
+
+      await Future.delayed(const Duration(milliseconds: 100));
+    }
+
+    if (!_hasAnyCandidates) {
+      print('$_tag ⚠ Aucun ICE candidate collecté après ${maxWait.inSeconds}s');
     }
   }
 
@@ -831,6 +880,8 @@ class WebRTCService {
     _isSettingRemoteAnswerPending = false;
     _pendingIceCandidates.clear();
     _pendingOutgoingIce.clear();
+    _hasRelayCandidates = false;
+    _hasAnyCandidates = false;
   }
 
   Future<void> _cleanup() async {
