@@ -154,10 +154,7 @@ class WebRTCService {
 
           final config = {
             'iceServers': [
-              // Serveurs STUN publics (rapides, toujours disponibles)
-              {'urls': 'stun:stun.l.google.com:19302'},
-              {'urls': 'stun:stun1.l.google.com:19302'},
-              // Serveur TURN avec credentials
+              // Votre serveur TURN/STUN avec credentials
               if (uris.isNotEmpty)
                 {
                   'urls': uris,
@@ -178,12 +175,11 @@ class WebRTCService {
       print('$_tag Erreur TURN: $e');
     }
 
-    // Fallback: STUN uniquement
-    print('$_tag ⚠ Utilisation STUN uniquement (fallback)');
+    // Fallback: Serveur STUN Google (si API inaccessible)
+    print('$_tag ⚠ Impossible de charger TURN, utilisation STUN Google (fallback)');
     return {
       'iceServers': [
         {'urls': 'stun:stun.l.google.com:19302'},
-        {'urls': 'stun1.l.google.com:19302'},
       ],
     };
   }
