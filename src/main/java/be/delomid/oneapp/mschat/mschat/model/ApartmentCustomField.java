@@ -6,15 +6,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
-@Table(name = "apartment_rooms")
+@Table(name = "apartment_custom_fields")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ApartmentRoom {
+public class ApartmentCustomField {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -22,27 +20,23 @@ public class ApartmentRoom {
     @Column(name = "apartment_id", nullable = false)
     private Long apartmentId;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "room_type_id", nullable = false)
-    private RoomType roomType;
+    @Column(name = "field_label", nullable = false, length = 255)
+    private String fieldLabel;
 
-    @Column(name = "room_name", length = 255)
-    private String roomName;
+    @Column(name = "field_value", columnDefinition = "TEXT")
+    private String fieldValue;
+
+    @Column(name = "display_order")
+    private Integer displayOrder = 0;
+
+    @Column(name = "is_system_field")
+    private Boolean isSystemField = false;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    @OneToMany(mappedBy = "apartmentRoom", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<RoomFieldValue> fieldValues = new ArrayList<>();
-
-    @OneToMany(mappedBy = "apartmentRoom", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<RoomEquipment> equipments = new ArrayList<>();
-
-    @OneToMany(mappedBy = "apartmentRoom", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<RoomImage> images = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {
