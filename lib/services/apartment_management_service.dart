@@ -34,7 +34,7 @@ class ApartmentManagementService {
     }
   }
 
-  Future<List<RoomTypeModel>> getRoomTypes(int buildingId) async {
+  Future<List<RoomTypeModel>> getRoomTypes(String buildingId) async {
     try {
       final token = await _getToken();
 

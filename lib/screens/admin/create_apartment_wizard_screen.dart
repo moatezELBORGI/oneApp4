@@ -11,7 +11,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
 class CreateApartmentWizardScreen extends StatefulWidget {
-  final int buildingId;
+  final String buildingId;
   final int maxFloors;
   final List<Map<String, dynamic>> owners;
 

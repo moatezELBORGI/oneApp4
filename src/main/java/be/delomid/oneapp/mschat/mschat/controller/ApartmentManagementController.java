@@ -62,8 +62,8 @@ public class ApartmentManagementController {
 
     @GetMapping("/room-types/{buildingId}")
     @Operation(summary = "Get room types for a building (including system types)")
-    public ResponseEntity<List<RoomTypeDto>> getRoomTypes(@PathVariable Long buildingId) {
-        List<RoomTypeDto> result = apartmentManagementService.getRoomTypes(buildingId);
+    public ResponseEntity<List<RoomTypeDto>> getRoomTypes(@PathVariable String buildingId) {
+        List<RoomTypeDto> result = apartmentManagementService.getRoomTypes(Long.parseLong(buildingId));
         return ResponseEntity.ok(result);
     }
 }
