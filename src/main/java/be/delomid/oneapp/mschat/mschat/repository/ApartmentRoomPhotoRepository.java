@@ -8,6 +8,5 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface ApartmentRoomPhotoRepository extends JpaRepository<ApartmentRoomPhoto, UUID> {
-    List<ApartmentRoomPhoto> findByRoom_IdOrderByOrderIndex(UUID roomId);
-}
+public interface ApartmentRoomPhotoRepository extends JpaRepository<ApartmentRoomPhoto, Long> {
+ }

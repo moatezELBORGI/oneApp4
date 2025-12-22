@@ -58,8 +58,8 @@ class ApartmentManagementService {
   }
 
   Future<ApartmentCompleteModel> createApartment(
-    Map<String, dynamic> apartmentData,
-  ) async {
+      Map<String, dynamic> apartmentData,
+      ) async {
     try {
       final token = await _getToken();
 
@@ -107,9 +107,9 @@ class ApartmentManagementService {
   }
 
   Future<ApartmentCompleteModel> updateRooms(
-    int apartmentId,
-    List<Map<String, dynamic>> rooms,
-  ) async {
+      int apartmentId,
+      List<Map<String, dynamic>> rooms,
+      ) async {
     try {
       final token = await _getToken();
 
@@ -134,9 +134,9 @@ class ApartmentManagementService {
   }
 
   Future<ApartmentCompleteModel> updateCustomFields(
-    int apartmentId,
-    List<Map<String, dynamic>> customFields,
-  ) async {
+      int apartmentId,
+      List<Map<String, dynamic>> customFields,
+      ) async {
     try {
       final token = await _getToken();
 

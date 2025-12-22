@@ -27,7 +27,7 @@ class _ApartmentDetailsAccordionScreenState
   @override
   void initState() {
     super.initState();
-    _apartmentService = ApartmentManagementService(_apiService);
+    _apartmentService = ApartmentManagementService();
     _loadApartment();
   }
 

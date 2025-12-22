@@ -3,6 +3,7 @@ import '../../models/room_type_model.dart';
 import '../../models/apartment_room_complete_model.dart';
 import '../../models/apartment_complete_model.dart';
 import '../../services/apartment_management_service.dart';
+import '../../services/api_service.dart';
 import '../../services/storage_service.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
@@ -25,10 +26,12 @@ class CreateApartmentWizardScreen extends StatefulWidget {
   State<CreateApartmentWizardScreen> createState() =>
       _CreateApartmentWizardScreenState();
 }
+final ApiService _apiService = ApiService();
 
 class _CreateApartmentWizardScreenState
     extends State<CreateApartmentWizardScreen> {
   late final ApartmentManagementService _apartmentService;
+
   final _storageService = StorageService();
 
   int _currentStep = 0;
@@ -86,8 +89,9 @@ class _CreateApartmentWizardScreenState
     try {
       final file = File(imageFile.path);
       final fileName = 'apartment_${DateTime.now().millisecondsSinceEpoch}_${imageFile.name}';
-      final url = await _storageService.uploadFile(file, fileName);
-      return url;
+      final url = await _apiService.uploadFile(file, fileName);
+      final pictureurl=url['url'];
+      return pictureurl;
     } catch (e) {
       throw Exception('Failed to upload image: $e');
     }
@@ -145,10 +149,10 @@ class _CreateApartmentWizardScreenState
       final List<Map<String, dynamic>> customFieldsData = _customFields
           .where((cf) => cf.value.isNotEmpty)
           .map((cf) => {
-                'fieldLabel': cf.label,
-                'fieldValue': cf.value,
-                'isSystemField': cf.isSystemField,
-              })
+        'fieldLabel': cf.label,
+        'fieldValue': cf.value,
+        'isSystemField': cf.isSystemField,
+      })
           .toList();
 
       final apartmentData = {
@@ -195,69 +199,68 @@ class _CreateApartmentWizardScreenState
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : Theme(
-              data: Theme.of(context).copyWith(
-                colorScheme: ColorScheme.light(
-                  primary: Theme.of(context).primaryColor,
-                ),
-              ),
-              child: Stepper(
-                currentStep: _currentStep,
-                onStepContinue: _onStepContinue,
-                onStepCancel: _onStepCancel,
-                controlsBuilder: (context, details) {
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 24.0),
-                    child: Row(
-                      children: [
-                        if (_currentStep < 2)
-                          Expanded(
-                            child: CustomButton(
-                              text: 'Suivant',
-                              onPressed: details.onStepContinue,
-                            ),
-                          ),
-                        if (_currentStep == 2)
-                          Expanded(
-                            child: CustomButton(
-                              text: 'Créer l\'appartement',
-                              onPressed: _handleSubmit,
-                            ),
-                          ),
-                        const SizedBox(width: 12),
-                        if (_currentStep > 0)
-                          Expanded(
-                            child: CustomButton(
-                              text: 'Retour',
-                              onPressed: details.onStepCancel,
-                              variant: ButtonVariant.outlined,
-                            ),
-                          ),
-                      ],
+        data: Theme.of(context).copyWith(
+          colorScheme: ColorScheme.light(
+            primary: Theme.of(context).primaryColor,
+          ),
+        ),
+        child: Stepper(
+          currentStep: _currentStep,
+          onStepContinue: _onStepContinue,
+          onStepCancel: _onStepCancel,
+          controlsBuilder: (context, details) {
+            return Padding(
+              padding: const EdgeInsets.only(top: 24.0),
+              child: Row(
+                children: [
+                  if (_currentStep < 2)
+                    Expanded(
+                      child: CustomButton(
+                        text: 'Suivant',
+                        onPressed: details.onStepContinue,
+                      ),
                     ),
-                  );
-                },
-                steps: [
-                  Step(
-                    title: const Text('Informations de base'),
-                    isActive: _currentStep >= 0,
-                    state: _currentStep > 0 ? StepState.complete : StepState.indexed,
-                    content: _buildBasicInfoStep(),
-                  ),
-                  Step(
-                    title: const Text('Pièces'),
-                    isActive: _currentStep >= 1,
-                    state: _currentStep > 1 ? StepState.complete : StepState.indexed,
-                    content: _buildRoomsStep(),
-                  ),
-                  Step(
-                    title: const Text('Champs spécifiques'),
-                    isActive: _currentStep >= 2,
-                    state: _currentStep > 2 ? StepState.complete : StepState.indexed,
-                    content: _buildCustomFieldsStep(),
-                  ),
+                  if (_currentStep == 2)
+                    Expanded(
+                      child: CustomButton(
+                        text: 'Créer l\'appartement',
+                        onPressed: _handleSubmit,
+                      ),
+                    ),
+                  const SizedBox(width: 12),
+                  if (_currentStep > 0)
+                    Expanded(
+                      child: CustomButton(
+                        text: 'Retour',
+                        onPressed: details.onStepCancel
+                       ),
+                    ),
                 ],
               ),
+            );
+          },
+          steps: [
+            Step(
+              title: const Text('Informations de base'),
+              isActive: _currentStep >= 0,
+              state: _currentStep > 0 ? StepState.complete : StepState.indexed,
+              content: _buildBasicInfoStep(),
             ),
+            Step(
+              title: const Text('Pièces'),
+              isActive: _currentStep >= 1,
+              state: _currentStep > 1 ? StepState.complete : StepState.indexed,
+              content: _buildRoomsStep(),
+            ),
+            Step(
+              title: const Text('Champs spécifiques'),
+              isActive: _currentStep >= 2,
+              state: _currentStep > 2 ? StepState.complete : StepState.indexed,
+              content: _buildCustomFieldsStep(),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -385,9 +388,9 @@ class _CreateApartmentWizardScreenState
   }
 
   Widget _buildFieldInput(
-    CreateRoomData room,
-    RoomTypeFieldDefinitionModel fieldDef,
-  ) {
+      CreateRoomData room,
+      RoomTypeFieldDefinitionModel fieldDef,
+      ) {
     if (fieldDef.fieldType == 'NUMBER') {
       return TextField(
         decoration: InputDecoration(

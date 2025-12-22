@@ -33,7 +33,7 @@ class _PropertyDetailsEditableScreenState
   @override
   void initState() {
     super.initState();
-    _apartmentService = ApartmentManagementService(_apiService);
+    _apartmentService = ApartmentManagementService();
     _loadApartment();
   }
 
@@ -113,39 +113,39 @@ class _PropertyDetailsEditableScreenState
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _apartment == null
-              ? const Center(child: Text('Aucune donnée disponible'))
-              : Column(
-                  children: [
-                    Expanded(
-                      child: RefreshIndicator(
-                        onRefresh: _loadApartment,
-                        child: SingleChildScrollView(
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _buildHeader(),
-                                const SizedBox(height: 24),
-                                _buildBasicInfoCard(),
-                                const SizedBox(height: 16),
-                                if (_apartment!.rooms.isNotEmpty) ...[
-                                  _buildRoomsSection(),
-                                  const SizedBox(height: 16),
-                                ],
-                                if (_apartment!.customFields.isNotEmpty)
-                                  _buildCustomFieldsSection(),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    if (_isEditMode && _editingSection.isNotEmpty)
-                      _buildEditFooter(),
-                  ],
+          ? const Center(child: Text('Aucune donnée disponible'))
+          : Column(
+        children: [
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: _loadApartment,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildHeader(),
+                      const SizedBox(height: 24),
+                      _buildBasicInfoCard(),
+                      const SizedBox(height: 16),
+                      if (_apartment!.rooms.isNotEmpty) ...[
+                        _buildRoomsSection(),
+                        const SizedBox(height: 16),
+                      ],
+                      if (_apartment!.customFields.isNotEmpty)
+                        _buildCustomFieldsSection(),
+                    ],
+                  ),
                 ),
+              ),
+            ),
+          ),
+          if (_isEditMode && _editingSection.isNotEmpty)
+            _buildEditFooter(),
+        ],
+      ),
     );
   }
 
@@ -456,7 +456,7 @@ class _PropertyDetailsEditableScreenState
                                             scrollDirection: Axis.horizontal,
                                             itemCount: equipment.images.length,
                                             separatorBuilder: (context, index) =>
-                                                const SizedBox(width: 8),
+                                            const SizedBox(width: 8),
                                             itemBuilder: (context, index) {
                                               return GestureDetector(
                                                 onTap: () =>
@@ -500,7 +500,7 @@ class _PropertyDetailsEditableScreenState
                                 scrollDirection: Axis.horizontal,
                                 itemCount: room.images.length,
                                 separatorBuilder: (context, index) =>
-                                    const SizedBox(width: 8),
+                                const SizedBox(width: 8),
                                 itemBuilder: (context, index) {
                                   return GestureDetector(
                                     onTap: () => _showImageDialog(room.images[index].imageUrl),
@@ -652,9 +652,8 @@ class _PropertyDetailsEditableScreenState
                 setState(() {
                   _editingSection = '';
                 });
-              },
-              variant: ButtonVariant.outlined,
-            ),
+              }
+             ),
           ),
           const SizedBox(width: 12),
           Expanded(
