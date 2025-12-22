@@ -12,7 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 public class ApartmentRoomCompleteDto {
     private Long id;
-    private Long apartmentId;
+    private String apartmentId;
     private String roomName;
     private RoomTypeDto roomType;
     private List<RoomFieldValueDto> fieldValues = new ArrayList<>();

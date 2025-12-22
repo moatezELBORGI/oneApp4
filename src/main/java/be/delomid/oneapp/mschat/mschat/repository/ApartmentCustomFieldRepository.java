@@ -8,5 +8,5 @@ import java.util.List;
 
 @Repository
 public interface ApartmentCustomFieldRepository extends JpaRepository<ApartmentCustomField, Long> {
-    List<ApartmentCustomField> findByApartmentIdOrderByDisplayOrder(Long apartmentId);
+    List<ApartmentCustomField> findByApartmentIdOrderByDisplayOrder(String apartmentId);
 }

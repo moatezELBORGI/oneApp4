@@ -31,22 +31,24 @@ public class ApartmentManagementService {
         Building building = buildingRepository.findById(request.getBuildingId())
                 .orElseThrow(() -> new RuntimeException("Building not found"));
 
-        if (request.getFloor() > building.getMaxFloors()) {
+        if (request.getFloor() > building.getNumberOfFloors()) {
             throw new RuntimeException("Floor number exceeds building max floors");
         }
 
+        Resident resident=residentRepository.findById(request.getOwnerId()).orElseThrow(() -> new RuntimeException("Owner not found"));
+
         Apartment apartment = new Apartment();
-        apartment.setPropertyName(request.getPropertyName());
-        apartment.setNumber(request.getNumber());
-        apartment.setFloor(request.getFloor());
-        apartment.setOwnerId(request.getOwnerId());
-        apartment.setBuildingId(request.getBuildingId());
+        apartment.setApartmentLabel(request.getPropertyName());
+        apartment.setApartmentNumber(request.getNumber());
+        apartment.setApartmentFloor(request.getFloor());
+        apartment.setOwner(resident);
+        apartment.setBuilding(building);
         apartment = apartmentRepository.save(apartment);
 
         List<ApartmentRoom> savedRooms = new ArrayList<>();
         for (CreateRoomRequest roomRequest : request.getRooms()) {
             ApartmentRoom room = new ApartmentRoom();
-            room.setApartmentId(apartment.getId());
+            room.setApartmentId(apartment.getIdApartment());
 
             RoomType roomType = roomTypeRepository.findById(roomRequest.getRoomTypeId())
                     .orElseThrow(() -> new RuntimeException("Room type not found"));
@@ -99,7 +101,7 @@ public class ApartmentManagementService {
         int displayOrder = 0;
         for (CreateCustomFieldRequest customFieldRequest : request.getCustomFields()) {
             ApartmentCustomField customField = new ApartmentCustomField();
-            customField.setApartmentId(apartment.getId());
+            customField.setApartmentId(apartment.getIdApartment());
             customField.setFieldLabel(customFieldRequest.getFieldLabel());
             customField.setFieldValue(customFieldRequest.getFieldValue());
             customField.setIsSystemField(customFieldRequest.getIsSystemField() != null ? customFieldRequest.getIsSystemField() : false);
@@ -107,29 +109,29 @@ public class ApartmentManagementService {
             apartmentCustomFieldRepository.save(customField);
         }
 
-        return getApartmentComplete(apartment.getId());
+        return getApartmentComplete(apartment.getIdApartment());
     }
 
     @Transactional(readOnly = true)
-    public ApartmentCompleteDto getApartmentComplete(Long apartmentId) {
+    public ApartmentCompleteDto getApartmentComplete(String apartmentId) {
         Apartment apartment = apartmentRepository.findById(apartmentId)
                 .orElseThrow(() -> new RuntimeException("Apartment not found"));
 
         ApartmentCompleteDto dto = new ApartmentCompleteDto();
-        dto.setId(apartment.getId());
-        dto.setPropertyName(apartment.getPropertyName());
-        dto.setNumber(apartment.getNumber());
-        dto.setFloor(apartment.getFloor());
-        dto.setOwnerId(apartment.getOwnerId());
-        dto.setBuildingId(apartment.getBuildingId());
+        dto.setId(apartment.getIdApartment());
+        dto.setPropertyName(apartment.getApartmentLabel());
+        dto.setNumber(apartment.getApartmentNumber());
+        dto.setFloor(apartment.getApartmentFloor());
+        dto.setOwnerId(apartment.getOwner().getIdUsers());
+        dto.setBuildingId(apartment.getBuilding().getBuildingId());
 
-        if (apartment.getOwnerId() != null) {
-            residentRepository.findById(apartment.getOwnerId())
-                    .ifPresent(owner -> dto.setOwnerName(owner.getFirstName() + " " + owner.getLastName()));
+        if (apartment.getOwner().getIdUsers() != null) {
+            residentRepository.findById(apartment.getOwner().getIdUsers())
+                    .ifPresent(owner -> dto.setOwnerName(owner.getFname() + " " + owner.getLname()));
         }
 
-        buildingRepository.findById(apartment.getBuildingId())
-                .ifPresent(building -> dto.setBuildingName(building.getName()));
+        buildingRepository.findById(apartment.getBuilding().getBuildingId())
+                .ifPresent(building -> dto.setBuildingName(building.getBuildingLabel()));
 
         List<ApartmentRoom> rooms = apartmentRoomRepository.findByApartmentIdOrderById(apartmentId);
         dto.setRooms(rooms.stream().map(this::convertToCompleteDto).collect(Collectors.toList()));
@@ -153,7 +155,7 @@ public class ApartmentManagementService {
     }
 
     @Transactional
-    public ApartmentCompleteDto updateApartmentRooms(Long apartmentId, List<CreateRoomRequest> roomsRequest) {
+    public ApartmentCompleteDto updateApartmentRooms(String apartmentId, List<CreateRoomRequest> roomsRequest) {
         apartmentRoomRepository.deleteAll(apartmentRoomRepository.findByApartmentIdOrderById(apartmentId));
 
         for (CreateRoomRequest roomRequest : roomsRequest) {
@@ -210,7 +212,7 @@ public class ApartmentManagementService {
     }
 
     @Transactional
-    public ApartmentCompleteDto updateCustomFields(Long apartmentId, List<CreateCustomFieldRequest> customFieldsRequest) {
+    public ApartmentCompleteDto updateCustomFields(String apartmentId, List<CreateCustomFieldRequest> customFieldsRequest) {
         apartmentCustomFieldRepository.deleteAll(apartmentCustomFieldRepository.findByApartmentIdOrderByDisplayOrder(apartmentId));
 
         int displayOrder = 0;

@@ -18,7 +18,7 @@ public class ApartmentCustomField {
     private Long id;
 
     @Column(name = "apartment_id", nullable = false)
-    private Long apartmentId;
+    private String apartmentId;
 
     @Column(name = "field_label", nullable = false, length = 255)
     private String fieldLabel;

@@ -37,7 +37,7 @@ public class ApartmentRoomController {
     @PutMapping("/{roomId}")
     @Operation(summary = "Update a room")
     public ResponseEntity<ApartmentRoomDto> updateRoom(
-            @PathVariable UUID roomId,
+            @PathVariable Long roomId,
             @RequestBody ApartmentRoomDto dto) {
         ApartmentRoomDto room = apartmentRoomService.updateRoom(roomId, dto);
         return ResponseEntity.ok(room);
@@ -45,7 +45,7 @@ public class ApartmentRoomController {
 
     @DeleteMapping("/{roomId}")
     @Operation(summary = "Delete a room")
-    public ResponseEntity<Void> deleteRoom(@PathVariable UUID roomId) {
+    public ResponseEntity<Void> deleteRoom(@PathVariable Long roomId) {
         apartmentRoomService.deleteRoom(roomId);
         return ResponseEntity.ok().build();
     }
@@ -53,7 +53,7 @@ public class ApartmentRoomController {
     @PostMapping("/{roomId}/photos")
     @Operation(summary = "Add photo to room")
     public ResponseEntity<ApartmentRoomPhotoDto> addPhoto(
-            @PathVariable UUID roomId,
+            @PathVariable Long roomId,
             @RequestParam String photoUrl,
             @RequestParam(required = false) String caption,
             @RequestParam(required = false) Integer orderIndex) {

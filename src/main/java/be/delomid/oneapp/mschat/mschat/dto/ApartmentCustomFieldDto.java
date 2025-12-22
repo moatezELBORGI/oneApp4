@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ApartmentCustomFieldDto {
     private Long id;
-    private Long apartmentId;
+    private String apartmentId;
     private String fieldLabel;
     private String fieldValue;
     private Integer displayOrder;

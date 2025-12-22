@@ -15,7 +15,7 @@ public class CreateApartmentWithRoomsRequest {
     private String number;
     private Integer floor;
     private String ownerId;
-    private Long buildingId;
+    private String buildingId;
     private List<CreateRoomRequest> rooms = new ArrayList<>();
     private List<CreateCustomFieldRequest> customFields = new ArrayList<>();
 }

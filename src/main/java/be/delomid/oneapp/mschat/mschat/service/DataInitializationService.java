@@ -41,7 +41,6 @@ public class DataInitializationService implements CommandLineRunner {
         initializeSuperAdmin();
         initializeTestData();
         initFaqData();
-        initializeOwnerTenantData();
 
         log.info("Application data initialization completed");
     }
@@ -553,7 +552,7 @@ public class DataInitializationService implements CommandLineRunner {
         });
     }
 
-    private void initializeOwnerTenantData() {
+ /*   private void initializeOwnerTenantData() {
         if (leaseContractRepository.count() > 0) {
             log.info("Owner/Tenant data already initialized, skipping...");
             return;
@@ -615,10 +614,10 @@ public class DataInitializationService implements CommandLineRunner {
             apartmentRepository.save(apt101);
 
             ApartmentRoomLegacy room1 = ApartmentRoom.builder()
-                    .apartment(apt101)
+                    .apartmentId(apt101.getIdApartment())
                     .roomName("Salon")
-                    .roomType("living_room")
-                    .description("Grand salon lumineux avec baie vitrée")
+                   // .roomType("living_room")
+                    //.description("Grand salon lumineux avec baie vitrée")
                     .orderIndex(0)
                     .build();
             apartmentRoomLegacyRepository.save(room1);
@@ -688,7 +687,7 @@ public class DataInitializationService implements CommandLineRunner {
         log.info("Lease Contract created for apartment 101 (DRAFT status)");
         log.info("4 rooms created for apartment 101");
     }
-
+*/
     private void initializeBrusselsLeaseArticles() {
         List<LeaseContractArticle> articles = new ArrayList<>();
 

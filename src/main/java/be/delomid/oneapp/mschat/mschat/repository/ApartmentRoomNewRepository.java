@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface ApartmentRoomRepository extends JpaRepository<ApartmentRoom, Long> {
+public interface ApartmentRoomNewRepository extends JpaRepository<ApartmentRoom, Long> {
     List<ApartmentRoom> findByApartmentIdOrderById(String apartmentId);
 
     @Query("SELECT ar FROM ApartmentRoom ar LEFT JOIN FETCH ar.roomType LEFT JOIN FETCH ar.fieldValues WHERE ar.apartmentId = :apartmentId")

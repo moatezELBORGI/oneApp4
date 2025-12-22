@@ -30,7 +30,7 @@ public class ApartmentManagementController {
 
     @GetMapping("/apartments/{apartmentId}")
     @Operation(summary = "Get complete apartment details")
-    public ResponseEntity<ApartmentCompleteDto> getApartment(@PathVariable Long apartmentId) {
+    public ResponseEntity<ApartmentCompleteDto> getApartment(@PathVariable String apartmentId) {
         ApartmentCompleteDto result = apartmentManagementService.getApartmentComplete(apartmentId);
         return ResponseEntity.ok(result);
     }
@@ -38,7 +38,7 @@ public class ApartmentManagementController {
     @PutMapping("/apartments/{apartmentId}/rooms")
     @Operation(summary = "Update apartment rooms")
     public ResponseEntity<ApartmentCompleteDto> updateRooms(
-            @PathVariable Long apartmentId,
+            @PathVariable String apartmentId,
             @RequestBody List<CreateRoomRequest> roomsRequest) {
         ApartmentCompleteDto result = apartmentManagementService.updateApartmentRooms(apartmentId, roomsRequest);
         return ResponseEntity.ok(result);
@@ -47,7 +47,7 @@ public class ApartmentManagementController {
     @PutMapping("/apartments/{apartmentId}/custom-fields")
     @Operation(summary = "Update apartment custom fields")
     public ResponseEntity<ApartmentCompleteDto> updateCustomFields(
-            @PathVariable Long apartmentId,
+            @PathVariable String apartmentId,
             @RequestBody List<CreateCustomFieldRequest> customFieldsRequest) {
         ApartmentCompleteDto result = apartmentManagementService.updateCustomFields(apartmentId, customFieldsRequest);
         return ResponseEntity.ok(result);
