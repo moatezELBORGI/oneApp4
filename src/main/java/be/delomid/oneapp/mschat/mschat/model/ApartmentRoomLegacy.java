@@ -11,14 +11,14 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "inventory_room_entries")
+@Table(name = "apartment_rooms_legacy")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@EqualsAndHashCode(exclude = {"inventory", "room", "photos"})
-@ToString(exclude = {"inventory", "room", "photos"})
-public class InventoryRoomEntry {
+@EqualsAndHashCode(exclude = {"apartment", "photos"})
+@ToString(exclude = {"apartment", "photos"})
+public class ApartmentRoomLegacy {
 
     @Id
     @GeneratedValue
@@ -26,15 +26,14 @@ public class InventoryRoomEntry {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "inventory_id", nullable = false)
-    private Inventory inventory;
+    @JoinColumn(name = "apartment_id", nullable = false)
+    private Apartment apartment;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "room_id")
-    private ApartmentRoomLegacy room;
+    @Column(name = "room_name", nullable = false)
+    private String roomName;
 
-    @Column(name = "section_name")
-    private String sectionName;
+    @Column(name = "room_type")
+    private String roomType;
 
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
@@ -43,9 +42,9 @@ public class InventoryRoomEntry {
     @Builder.Default
     private Integer orderIndex = 0;
 
-    @OneToMany(mappedBy = "roomEntry", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "room", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    private List<InventoryRoomPhoto> photos = new ArrayList<>();
+    private List<ApartmentRoomPhoto> photos = new ArrayList<>();
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

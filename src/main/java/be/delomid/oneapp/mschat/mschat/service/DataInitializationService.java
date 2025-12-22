@@ -30,7 +30,7 @@ public class DataInitializationService implements CommandLineRunner {
     private final AppConfig appConfig;
     private final FaqTopicRepository faqTopicRepository;
     private final LeaseContractRepository leaseContractRepository;
-    private final ApartmentRoomRepository apartmentRoomRepository;
+    private final ApartmentRoomLegacyRepository apartmentRoomLegacyRepository;
     private final LeaseContractArticleRepository leaseContractArticleRepository;
     @Override
     @Transactional
@@ -614,41 +614,41 @@ public class DataInitializationService implements CommandLineRunner {
             apt101.setTenant(tenant1);
             apartmentRepository.save(apt101);
 
-            ApartmentRoom room1 = ApartmentRoom.builder()
+            ApartmentRoomLegacy room1 = ApartmentRoom.builder()
                     .apartment(apt101)
                     .roomName("Salon")
                     .roomType("living_room")
                     .description("Grand salon lumineux avec baie vitrée")
                     .orderIndex(0)
                     .build();
-            apartmentRoomRepository.save(room1);
+            apartmentRoomLegacyRepository.save(room1);
 
-            ApartmentRoom room2 = ApartmentRoom.builder()
+            ApartmentRoomLegacy room2 = ApartmentRoom.builder()
                     .apartment(apt101)
                     .roomName("Chambre principale")
                     .roomType("bedroom")
                     .description("Chambre spacieuse avec placard intégré")
                     .orderIndex(1)
                     .build();
-            apartmentRoomRepository.save(room2);
+            apartmentRoomLegacyRepository.save(room2);
 
-            ApartmentRoom room3 = ApartmentRoom.builder()
+            ApartmentRoomLegacy room3 = ApartmentRoom.builder()
                     .apartment(apt101)
                     .roomName("Cuisine")
                     .roomType("kitchen")
                     .description("Cuisine équipée moderne")
                     .orderIndex(2)
                     .build();
-            apartmentRoomRepository.save(room3);
+            apartmentRoomLegacyRepository.save(room3);
 
-            ApartmentRoom room4 = ApartmentRoom.builder()
+            ApartmentRoomLegacy room4 = ApartmentRoom.builder()
                     .apartment(apt101)
                     .roomName("Salle de bain")
                     .roomType("bathroom")
                     .description("Salle de bain avec douche et baignoire")
                     .orderIndex(3)
                     .build();
-            apartmentRoomRepository.save(room4);
+            apartmentRoomLegacyRepository.save(room4);
 
             log.info("Created 4 rooms for apartment 101");
 

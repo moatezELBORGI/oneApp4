@@ -23,7 +23,7 @@ public class InventoryService {
     private final InventoryRepository inventoryRepository;
     private final InventoryRoomEntryRepository roomEntryRepository;
     private final LeaseContractRepository leaseContractRepository;
-    private final ApartmentRoomRepository apartmentRoomRepository;
+    private final ApartmentRoomLegacyRepository apartmentRoomLegacyRepository;
     private final InventoryRoomPhotoRepository roomPhotoRepository;
     private final FileService fileService;
 
@@ -48,12 +48,12 @@ public class InventoryService {
 
         inventory = inventoryRepository.save(inventory);
 
-        List<ApartmentRoom> rooms = apartmentRoomRepository.findByApartment_IdApartmentOrderByOrderIndex(
+        List<ApartmentRoomLegacy> rooms = apartmentRoomLegacyRepository.findByApartment_IdApartmentOrderByOrderIndex(
                 contract.getApartment().getIdApartment()
         );
 
         int orderIndex = 0;
-        for (ApartmentRoom room : rooms) {
+        for (ApartmentRoomLegacy room : rooms) {
             InventoryRoomEntry entry = InventoryRoomEntry.builder()
                     .inventory(inventory)
                     .room(room)

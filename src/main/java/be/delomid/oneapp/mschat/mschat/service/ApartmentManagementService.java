@@ -20,7 +20,7 @@ public class ApartmentManagementService {
     private final ResidentRepository residentRepository;
     private final RoomTypeRepository roomTypeRepository;
     private final RoomTypeFieldDefinitionRepository roomTypeFieldDefinitionRepository;
-    private final ApartmentRoomNewRepository apartmentRoomNewRepository;
+    private final ApartmentRoomRepository apartmentRoomRepository;
     private final RoomFieldValueRepository roomFieldValueRepository;
     private final RoomEquipmentRepository roomEquipmentRepository;
     private final RoomImageRepository roomImageRepository;
@@ -52,7 +52,7 @@ public class ApartmentManagementService {
                     .orElseThrow(() -> new RuntimeException("Room type not found"));
             room.setRoomType(roomType);
             room.setRoomName(roomRequest.getRoomName());
-            room = apartmentRoomNewRepository.save(room);
+            room = apartmentRoomRepository.save(room);
 
             for (CreateRoomFieldValueRequest fieldValueRequest : roomRequest.getFieldValues()) {
                 RoomFieldValue fieldValue = new RoomFieldValue();
@@ -131,7 +131,7 @@ public class ApartmentManagementService {
         buildingRepository.findById(apartment.getBuildingId())
                 .ifPresent(building -> dto.setBuildingName(building.getName()));
 
-        List<ApartmentRoom> rooms = apartmentRoomNewRepository.findByApartmentIdOrderById(apartmentId);
+        List<ApartmentRoom> rooms = apartmentRoomRepository.findByApartmentIdOrderById(apartmentId);
         dto.setRooms(rooms.stream().map(this::convertToCompleteDto).collect(Collectors.toList()));
 
         List<ApartmentCustomField> customFields = apartmentCustomFieldRepository.findByApartmentIdOrderByDisplayOrder(apartmentId);
@@ -154,7 +154,7 @@ public class ApartmentManagementService {
 
     @Transactional
     public ApartmentCompleteDto updateApartmentRooms(Long apartmentId, List<CreateRoomRequest> roomsRequest) {
-        apartmentRoomNewRepository.deleteAll(apartmentRoomNewRepository.findByApartmentIdOrderById(apartmentId));
+        apartmentRoomRepository.deleteAll(apartmentRoomRepository.findByApartmentIdOrderById(apartmentId));
 
         for (CreateRoomRequest roomRequest : roomsRequest) {
             ApartmentRoom room = new ApartmentRoom();
@@ -164,7 +164,7 @@ public class ApartmentManagementService {
                     .orElseThrow(() -> new RuntimeException("Room type not found"));
             room.setRoomType(roomType);
             room.setRoomName(roomRequest.getRoomName());
-            room = apartmentRoomNewRepository.save(room);
+            room = apartmentRoomRepository.save(room);
 
             for (CreateRoomFieldValueRequest fieldValueRequest : roomRequest.getFieldValues()) {
                 RoomFieldValue fieldValue = new RoomFieldValue();

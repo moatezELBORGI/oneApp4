@@ -69,6 +69,28 @@
     - Add appropriate policies for admin_building and property owners
 */
 
+-- Rename old apartment_rooms table to apartment_rooms_legacy to avoid conflicts
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.tables
+    WHERE table_name = 'apartment_rooms'
+  ) THEN
+    ALTER TABLE apartment_rooms RENAME TO apartment_rooms_legacy;
+  END IF;
+END $$;
+
+-- Rename old apartment_room_photos table to apartment_room_photos_legacy
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.tables
+    WHERE table_name = 'apartment_room_photos'
+  ) THEN
+    ALTER TABLE apartment_room_photos RENAME TO apartment_room_photos_legacy;
+  END IF;
+END $$;
+
 -- Add property_name to apartments if not exists
 DO $$
 BEGIN
@@ -112,8 +134,8 @@ CREATE TABLE IF NOT EXISTS room_type_field_definitions (
   UNIQUE(room_type_id, field_name)
 );
 
--- Create apartment_rooms table
-CREATE TABLE IF NOT EXISTS apartment_rooms (
+-- Create new apartment_rooms table with dynamic structure
+CREATE TABLE apartment_rooms (
   id BIGSERIAL PRIMARY KEY,
   apartment_id BIGINT NOT NULL REFERENCES apartments(id) ON DELETE CASCADE,
   room_type_id BIGINT NOT NULL REFERENCES room_types(id) ON DELETE RESTRICT,

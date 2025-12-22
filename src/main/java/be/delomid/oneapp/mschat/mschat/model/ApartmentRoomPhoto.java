@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "apartment_room_photos")
+@Table(name = "apartment_room_photos_legacy")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -24,7 +24,7 @@ public class ApartmentRoomPhoto {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "room_id", nullable = false)
-    private ApartmentRoom room;
+    private ApartmentRoomLegacy room;
 
     @Column(name = "photo_url", nullable = false)
     private String photoUrl;
