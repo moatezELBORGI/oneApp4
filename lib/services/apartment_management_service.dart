@@ -1,22 +1,34 @@
-import 'package:dio/dio.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import '../models/apartment_complete_model.dart';
 import '../models/room_type_model.dart';
 import '../utils/constants.dart';
-import 'api_service.dart';
+import 'storage_service.dart';
 
 class ApartmentManagementService {
-  final ApiService _apiService;
 
-  ApartmentManagementService(this._apiService);
+  Future<String?> _getToken() async {
+    return await StorageService.getToken();
+  }
 
   Future<List<RoomTypeModel>> getSystemRoomTypes() async {
     try {
-      final response = await _apiService.dio.get(
-        '$baseUrl/apartment-management/room-types',
+      final token = await _getToken();
+
+      final response = await http.get(
+        Uri.parse('${Constants.baseUrl}/apartment-management/room-types'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
       );
 
-      final List<dynamic> data = response.data;
-      return data.map((json) => RoomTypeModel.fromJson(json)).toList();
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(utf8.decode(response.bodyBytes));
+        return data.map((json) => RoomTypeModel.fromJson(json)).toList();
+      } else {
+        throw Exception('Failed to fetch room types: ${response.statusCode}');
+      }
     } catch (e) {
       throw Exception('Failed to fetch room types: $e');
     }
@@ -24,12 +36,22 @@ class ApartmentManagementService {
 
   Future<List<RoomTypeModel>> getRoomTypes(int buildingId) async {
     try {
-      final response = await _apiService.dio.get(
-        '$baseUrl/apartment-management/room-types/$buildingId',
+      final token = await _getToken();
+
+      final response = await http.get(
+        Uri.parse('${Constants.baseUrl}/apartment-management/room-types/$buildingId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
       );
 
-      final List<dynamic> data = response.data;
-      return data.map((json) => RoomTypeModel.fromJson(json)).toList();
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(utf8.decode(response.bodyBytes));
+        return data.map((json) => RoomTypeModel.fromJson(json)).toList();
+      } else {
+        throw Exception('Failed to fetch room types: ${response.statusCode}');
+      }
     } catch (e) {
       throw Exception('Failed to fetch room types: $e');
     }
@@ -39,12 +61,23 @@ class ApartmentManagementService {
     Map<String, dynamic> apartmentData,
   ) async {
     try {
-      final response = await _apiService.dio.post(
-        '$baseUrl/apartment-management/apartments',
-        data: apartmentData,
+      final token = await _getToken();
+
+      final response = await http.post(
+        Uri.parse('${Constants.baseUrl}/apartment-management/apartments'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: json.encode(apartmentData),
       );
 
-      return ApartmentCompleteModel.fromJson(response.data);
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = json.decode(utf8.decode(response.bodyBytes));
+        return ApartmentCompleteModel.fromJson(data);
+      } else {
+        throw Exception('Failed to create apartment: ${response.statusCode}');
+      }
     } catch (e) {
       throw Exception('Failed to create apartment: $e');
     }
@@ -52,11 +85,22 @@ class ApartmentManagementService {
 
   Future<ApartmentCompleteModel> getApartment(int apartmentId) async {
     try {
-      final response = await _apiService.dio.get(
-        '$baseUrl/apartment-management/apartments/$apartmentId',
+      final token = await _getToken();
+
+      final response = await http.get(
+        Uri.parse('${Constants.baseUrl}/apartment-management/apartments/$apartmentId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
       );
 
-      return ApartmentCompleteModel.fromJson(response.data);
+      if (response.statusCode == 200) {
+        final data = json.decode(utf8.decode(response.bodyBytes));
+        return ApartmentCompleteModel.fromJson(data);
+      } else {
+        throw Exception('Failed to fetch apartment: ${response.statusCode}');
+      }
     } catch (e) {
       throw Exception('Failed to fetch apartment: $e');
     }
@@ -67,12 +111,23 @@ class ApartmentManagementService {
     List<Map<String, dynamic>> rooms,
   ) async {
     try {
-      final response = await _apiService.dio.put(
-        '$baseUrl/apartment-management/apartments/$apartmentId/rooms',
-        data: rooms,
+      final token = await _getToken();
+
+      final response = await http.put(
+        Uri.parse('${Constants.baseUrl}/apartment-management/apartments/$apartmentId/rooms'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: json.encode(rooms),
       );
 
-      return ApartmentCompleteModel.fromJson(response.data);
+      if (response.statusCode == 200) {
+        final data = json.decode(utf8.decode(response.bodyBytes));
+        return ApartmentCompleteModel.fromJson(data);
+      } else {
+        throw Exception('Failed to update rooms: ${response.statusCode}');
+      }
     } catch (e) {
       throw Exception('Failed to update rooms: $e');
     }
@@ -83,12 +138,23 @@ class ApartmentManagementService {
     List<Map<String, dynamic>> customFields,
   ) async {
     try {
-      final response = await _apiService.dio.put(
-        '$baseUrl/apartment-management/apartments/$apartmentId/custom-fields',
-        data: customFields,
+      final token = await _getToken();
+
+      final response = await http.put(
+        Uri.parse('${Constants.baseUrl}/apartment-management/apartments/$apartmentId/custom-fields'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: json.encode(customFields),
       );
 
-      return ApartmentCompleteModel.fromJson(response.data);
+      if (response.statusCode == 200) {
+        final data = json.decode(utf8.decode(response.bodyBytes));
+        return ApartmentCompleteModel.fromJson(data);
+      } else {
+        throw Exception('Failed to update custom fields: ${response.statusCode}');
+      }
     } catch (e) {
       throw Exception('Failed to update custom fields: $e');
     }

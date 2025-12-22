@@ -3,7 +3,6 @@ import '../../models/room_type_model.dart';
 import '../../models/apartment_room_complete_model.dart';
 import '../../models/apartment_complete_model.dart';
 import '../../services/apartment_management_service.dart';
-import '../../services/api_service.dart';
 import '../../services/storage_service.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
@@ -29,7 +28,6 @@ class CreateApartmentWizardScreen extends StatefulWidget {
 
 class _CreateApartmentWizardScreenState
     extends State<CreateApartmentWizardScreen> {
-  final _apiService = ApiService();
   late final ApartmentManagementService _apartmentService;
   final _storageService = StorageService();
 
@@ -65,7 +63,7 @@ class _CreateApartmentWizardScreenState
   @override
   void initState() {
     super.initState();
-    _apartmentService = ApartmentManagementService(_apiService);
+    _apartmentService = ApartmentManagementService();
     _loadRoomTypes();
   }
 

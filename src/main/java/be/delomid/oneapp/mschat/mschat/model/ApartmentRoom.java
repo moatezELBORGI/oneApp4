@@ -23,7 +23,9 @@ public class ApartmentRoom {
 
     @Column(name = "apartment_id", nullable = false)
     private String apartmentId;
-        private int OrderIndex;
+
+    private int orderIndex;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "room_type_id", nullable = false)
     private RoomType roomType;
