@@ -4,17 +4,18 @@ import be.delomid.oneapp.mschat.mschat.dto.ApartmentRoomDto;
 import be.delomid.oneapp.mschat.mschat.dto.ApartmentRoomPhotoDto;
 import be.delomid.oneapp.mschat.mschat.model.Apartment;
 import be.delomid.oneapp.mschat.mschat.model.ApartmentRoom;
-import be.delomid.oneapp.mschat.mschat.model.ApartmentRoomPhoto;
+import be.delomid.oneapp.mschat.mschat.model.RoomImage;
 import be.delomid.oneapp.mschat.mschat.model.RoomType;
 import be.delomid.oneapp.mschat.mschat.repository.ApartmentRepository;
-import be.delomid.oneapp.mschat.mschat.repository.ApartmentRoomPhotoRepository;
 import be.delomid.oneapp.mschat.mschat.repository.ApartmentRoomRepository;
+import be.delomid.oneapp.mschat.mschat.repository.RoomImageRepository;
 import be.delomid.oneapp.mschat.mschat.repository.RoomTypeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -24,7 +25,7 @@ import java.util.stream.Collectors;
 public class ApartmentRoomService {
 
     private final ApartmentRoomRepository apartmentRoomRepository;
-    private final ApartmentRoomPhotoRepository apartmentRoomPhotoRepository;
+    private final RoomImageRepository roomImageRepository;
     private final ApartmentRepository apartmentRepository;
     private final RoomTypeRepository roomTypeRepository;
 
@@ -105,22 +106,23 @@ public class ApartmentRoomService {
         ApartmentRoom room = apartmentRoomRepository.findById(roomId)
                 .orElseThrow(() -> new RuntimeException("Room not found"));
 
-        ApartmentRoomPhoto photo = ApartmentRoomPhoto.builder()
-                .room(room)
-                .photoUrl(photoUrl)
-                .caption(caption)
-                .orderIndex(orderIndex)
+        RoomImage image = RoomImage.builder()
+                .apartmentRoom(room)
+                .imageUrl(photoUrl)
+                .displayOrder(orderIndex != null ? orderIndex : 0)
                 .build();
 
-        photo = apartmentRoomPhotoRepository.save(photo);
-        return convertPhotoToDto(photo);
+        image = roomImageRepository.save(image);
+        return convertImageToPhotoDto(image, caption);
     }
 
     private ApartmentRoomDto convertToDto(ApartmentRoom room) {
-        List<ApartmentRoomPhotoDto> photos = apartmentRoomPhotoRepository.findByRoom_IdOrderByOrderIndex(room.getId())
-                .stream()
-                .map(this::convertPhotoToDto)
-                .collect(Collectors.toList());
+        List<ApartmentRoomPhotoDto> photos = new ArrayList<>();
+        if (room.getImages() != null) {
+            photos = room.getImages().stream()
+                    .map(image -> convertImageToPhotoDto(image, null))
+                    .collect(Collectors.toList());
+        }
 
         return ApartmentRoomDto.builder()
                 .id(room.getId().toString())
@@ -135,14 +137,14 @@ public class ApartmentRoomService {
                 .build();
     }
 
-    private ApartmentRoomPhotoDto convertPhotoToDto(ApartmentRoomPhoto photo) {
+    private ApartmentRoomPhotoDto convertImageToPhotoDto(RoomImage image, String caption) {
         return ApartmentRoomPhotoDto.builder()
-                .id(photo.getId().toString())
-                .roomId(photo.getRoom().getId().toString())
-                .photoUrl(photo.getPhotoUrl())
-                .caption(photo.getCaption())
-                .orderIndex(photo.getOrderIndex())
-                .createdAt(photo.getCreatedAt())
+                .id(image.getId().toString())
+                .roomId(image.getApartmentRoom() != null ? image.getApartmentRoom().getId().toString() : null)
+                .photoUrl(image.getImageUrl())
+                .caption(caption)
+                .orderIndex(image.getDisplayOrder())
+                .createdAt(image.getCreatedAt())
                 .build();
     }
 }
