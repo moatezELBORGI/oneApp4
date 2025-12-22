@@ -5,8 +5,10 @@ import 'package:mgi/screens/apartment/edit_apartment_section_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../models/apartment_details_model.dart';
+import '../../models/apartment_complete_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/apartment_details_service.dart';
+import '../../services/apartment_management_service.dart';
 
 class MyApartmentScreen extends StatefulWidget {
   final String apartmentId;
@@ -22,8 +24,10 @@ class MyApartmentScreen extends StatefulWidget {
 
 class _MyApartmentScreenState extends State<MyApartmentScreen> {
   final ApartmentDetailsService _service = ApartmentDetailsService();
+  final ApartmentManagementService _managementService = ApartmentManagementService();
   final ImagePicker _picker = ImagePicker();
   ApartmentDetailsModel? _details;
+  ApartmentCompleteModel? _completeApartment;
   bool _isLoading = true;
   int _currentPhotoIndex = 0;
   bool _hasLoadedOnce = false;
@@ -49,8 +53,17 @@ class _MyApartmentScreenState extends State<MyApartmentScreen> {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
       final details = await _service.getApartmentDetails(widget.apartmentId);
+
+      ApartmentCompleteModel? completeApartment;
+      try {
+        completeApartment = await _managementService.getApartment(int.parse(widget.apartmentId));
+      } catch (e) {
+        print('Could not load complete apartment data: $e');
+      }
+
       setState(() {
         _details = details;
+        _completeApartment = completeApartment;
         _isLoading = false;
       });
     } catch (e) {
@@ -321,36 +334,44 @@ class _MyApartmentScreenState extends State<MyApartmentScreen> {
   Widget _buildAccordionSections() {
     return Column(
       children: [
-        _buildAccordionTile(
-          title: 'Informations Générales',
-          icon: Icons.info_outline,
-          content: _buildGeneralInfoContent(),
-          isInitiallyExpanded: true,
-        ),
-        _buildAccordionTile(
-          title: 'Intérieur',
-          icon: Icons.home,
-          content: _buildInteriorContent(),
-          isInitiallyExpanded: false,
-        ),
-        _buildAccordionTile(
-          title: 'Extérieur',
-          icon: Icons.deck,
-          content: _buildExteriorContent(),
-          isInitiallyExpanded: false,
-        ),
-        _buildAccordionTile(
-          title: 'Installations',
-          icon: Icons.build,
-          content: _buildInstallationsContent(),
-          isInitiallyExpanded: false,
-        ),
-        _buildAccordionTile(
-          title: 'Énergie',
-          icon: Icons.bolt,
-          content: _buildEnergieContent(),
-          isInitiallyExpanded: false,
-        ),
+        if (_completeApartment != null && _completeApartment!.rooms.isNotEmpty) ...[
+          ..._completeApartment!.rooms.map((room) {
+            return _buildRoomAccordionTile(room);
+          }).toList(),
+          if (_completeApartment!.customFields.isNotEmpty)
+            _buildCustomFieldsAccordionTile(),
+        ] else ...[
+          _buildAccordionTile(
+            title: 'Informations Générales',
+            icon: Icons.info_outline,
+            content: _buildGeneralInfoContent(),
+            isInitiallyExpanded: true,
+          ),
+          _buildAccordionTile(
+            title: 'Intérieur',
+            icon: Icons.home,
+            content: _buildInteriorContent(),
+            isInitiallyExpanded: false,
+          ),
+          _buildAccordionTile(
+            title: 'Extérieur',
+            icon: Icons.deck,
+            content: _buildExteriorContent(),
+            isInitiallyExpanded: false,
+          ),
+          _buildAccordionTile(
+            title: 'Installations',
+            icon: Icons.build,
+            content: _buildInstallationsContent(),
+            isInitiallyExpanded: false,
+          ),
+          _buildAccordionTile(
+            title: 'Énergie',
+            icon: Icons.bolt,
+            content: _buildEnergieContent(),
+            isInitiallyExpanded: false,
+          ),
+        ],
       ],
     );
   }
@@ -519,6 +540,191 @@ class _MyApartmentScreenState extends State<MyApartmentScreen> {
               style: TextStyle(
                 color: value != null ? Colors.black87 : Colors.grey,
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRoomAccordionTile(ApartmentRoomCompleteModel room) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: ExpansionTile(
+        initiallyExpanded: false,
+        leading: const Icon(Icons.meeting_room, color: Colors.blue),
+        title: Text(
+          room.roomName ?? room.roomType.name,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+        ),
+        subtitle: Text(room.roomType.name),
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (room.fieldValues.isNotEmpty) ...[
+                  const Text(
+                    'Caractéristiques',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ...room.fieldValues.map((fieldValue) {
+                    String value = 'Non renseigné';
+                    if (fieldValue.textValue != null) {
+                      value = fieldValue.textValue!;
+                    } else if (fieldValue.numberValue != null) {
+                      value = '${fieldValue.numberValue} m²';
+                    } else if (fieldValue.booleanValue != null) {
+                      value = fieldValue.booleanValue! ? 'Oui' : 'Non';
+                    }
+                    return _buildInfoRow(fieldValue.fieldName, value);
+                  }).toList(),
+                  const SizedBox(height: 16),
+                ],
+                if (room.equipments.isNotEmpty) ...[
+                  const Text(
+                    'Équipements',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ...room.equipments.map((equipment) {
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      color: Colors.grey[50],
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              equipment.name,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            if (equipment.description != null &&
+                                equipment.description!.isNotEmpty) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                equipment.description!,
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                            if (equipment.images.isNotEmpty) ...[
+                              const SizedBox(height: 8),
+                              SizedBox(
+                                height: 80,
+                                child: ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: equipment.images.length,
+                                  itemBuilder: (context, index) {
+                                    return Padding(
+                                      padding: const EdgeInsets.only(right: 8),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: CachedNetworkImage(
+                                          imageUrl: equipment.images[index].imageUrl,
+                                          width: 80,
+                                          height: 80,
+                                          fit: BoxFit.cover,
+                                          placeholder: (context, url) =>
+                                              const Center(
+                                                  child:
+                                                      CircularProgressIndicator()),
+                                          errorWidget: (context, url, error) =>
+                                              const Icon(Icons.error),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                  const SizedBox(height: 16),
+                ],
+                if (room.images.isNotEmpty) ...[
+                  const Text(
+                    'Photos',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    height: 120,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: room.images.length,
+                      itemBuilder: (context, index) {
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: CachedNetworkImage(
+                              imageUrl: room.images[index].imageUrl,
+                              width: 120,
+                              height: 120,
+                              fit: BoxFit.cover,
+                              placeholder: (context, url) => const Center(
+                                  child: CircularProgressIndicator()),
+                              errorWidget: (context, url, error) =>
+                                  const Icon(Icons.error),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCustomFieldsAccordionTile() {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: ExpansionTile(
+        initiallyExpanded: false,
+        leading: const Icon(Icons.info_outline, color: Colors.orange),
+        title: const Text(
+          'Champs spécifiques',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+        ),
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: _completeApartment!.customFields.map((field) {
+                return _buildInfoRow(field.fieldLabel, field.fieldValue);
+              }).toList(),
             ),
           ),
         ],

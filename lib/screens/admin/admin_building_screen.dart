@@ -3,7 +3,7 @@ import '../../models/building_photo_model.dart';
 import '../../services/building_admin_service.dart';
 import '../../services/building_context_service.dart';
 import '../../utils/app_theme.dart';
-import 'add_apartment_screen.dart';
+import 'create_apartment_wizard_screen.dart';
 import 'building_3d_view_screen.dart';
 import 'building_photos_screen.dart';
 import 'create_building_screen.dart';
@@ -22,6 +22,7 @@ class _AdminBuildingScreenState extends State<AdminBuildingScreen> {
 
   String? _currentBuildingId;
   String? _buildingName;
+  int? _maxFloors;
   List<BuildingPhotoModel> _photos = [];
   List<Map<String, dynamic>> _apartments = [];
   bool _isLoading = true;
@@ -42,10 +43,12 @@ class _AdminBuildingScreenState extends State<AdminBuildingScreen> {
       if (buildingId != null) {
         final photos = await _adminService.getBuildingPhotos(buildingId);
         final apartments = await _adminService.getApartmentsByBuilding(buildingId);
+        final buildingDetails = await _adminService.getBuildingById(buildingId);
 
         setState(() {
           _currentBuildingId = buildingId;
           _buildingName = buildingName ?? 'Immeuble';
+          _maxFloors = buildingDetails['numberOfFloors'] ?? 10;
           _photos = photos;
           _apartments = apartments;
         });
@@ -200,11 +203,19 @@ class _AdminBuildingScreenState extends State<AdminBuildingScreen> {
           subtitle: 'Créer un nouveau bien dans l\'immeuble',
           color: Colors.green,
           onTap: () async {
+            final members = await _adminService.getBuildingMembers(_currentBuildingId!);
+            final owners = members.residents.map((r) => {
+              'id': r.id,
+              'name': '${r.firstName} ${r.lastName}',
+            }).toList();
+
             final result = await Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => AddApartmentScreen(
-                  buildingId: _currentBuildingId!,
+                builder: (context) => CreateApartmentWizardScreen(
+                  buildingId: int.parse(_currentBuildingId!),
+                  maxFloors: _maxFloors ?? 10,
+                  owners: owners,
                 ),
               ),
             );
