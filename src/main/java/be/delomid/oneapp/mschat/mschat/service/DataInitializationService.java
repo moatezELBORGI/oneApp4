@@ -32,6 +32,8 @@ public class DataInitializationService implements CommandLineRunner {
     private final LeaseContractRepository leaseContractRepository;
     private final ApartmentRoomLegacyRepository apartmentRoomLegacyRepository;
     private final LeaseContractArticleRepository leaseContractArticleRepository;
+    private final RoomTypeRepository roomTypeRepository;
+    private final RoomTypeFieldDefinitionRepository roomTypeFieldDefinitionRepository;
     @Override
     @Transactional
     public void run(String... args) {
@@ -41,6 +43,7 @@ public class DataInitializationService implements CommandLineRunner {
         initializeSuperAdmin();
         initializeTestData();
         initFaqData();
+        initializeRoomTypes();
 
         log.info("Application data initialization completed");
     }
@@ -909,6 +912,82 @@ public class DataInitializationService implements CommandLineRunner {
 
         leaseContractArticleRepository.saveAll(articles);
         log.info("Initialized {} standard articles for Brussels lease contracts (BE-BXL)", articles.size());
+    }
+
+    private void initializeRoomTypes() {
+        if (roomTypeRepository.count() > 0) {
+            log.info("Room types already initialized, skipping...");
+            return;
+        }
+
+        log.info("Initializing room types...");
+
+        RoomType cuisine = new RoomType();
+        cuisine.setName("Cuisine");
+        cuisine.setBuildingId(null);
+        cuisine = roomTypeRepository.save(cuisine);
+
+        RoomTypeFieldDefinition cuisineEquipements = new RoomTypeFieldDefinition();
+        cuisineEquipements.setRoomType(cuisine);
+        cuisineEquipements.setFieldName("Équipements");
+        cuisineEquipements.setFieldType(FieldType.EQUIPMENT_LIST);
+        cuisineEquipements.setIsRequired(false);
+        cuisineEquipements.setDisplayOrder(1);
+        roomTypeFieldDefinitionRepository.save(cuisineEquipements);
+
+        log.info("Room type 'Cuisine' created with field 'Équipements'");
+
+        RoomType chambre = new RoomType();
+        chambre.setName("Chambre à coucher");
+        chambre.setBuildingId(null);
+        chambre = roomTypeRepository.save(chambre);
+
+        RoomTypeFieldDefinition chambreSurface = new RoomTypeFieldDefinition();
+        chambreSurface.setRoomType(chambre);
+        chambreSurface.setFieldName("Surface");
+        chambreSurface.setFieldType(FieldType.NUMBER);
+        chambreSurface.setIsRequired(false);
+        chambreSurface.setDisplayOrder(1);
+        roomTypeFieldDefinitionRepository.save(chambreSurface);
+
+        RoomTypeFieldDefinition chambreImages = new RoomTypeFieldDefinition();
+        chambreImages.setRoomType(chambre);
+        chambreImages.setFieldName("Images");
+        chambreImages.setFieldType(FieldType.IMAGE_LIST);
+        chambreImages.setIsRequired(false);
+        chambreImages.setDisplayOrder(2);
+        roomTypeFieldDefinitionRepository.save(chambreImages);
+
+        log.info("Room type 'Chambre à coucher' created with fields 'Surface' and 'Images'");
+
+        RoomType salleEau = new RoomType();
+        salleEau.setName("Salle d'eau");
+        salleEau.setBuildingId(null);
+        salleEau = roomTypeRepository.save(salleEau);
+
+        RoomTypeFieldDefinition salleEauEquipements = new RoomTypeFieldDefinition();
+        salleEauEquipements.setRoomType(salleEau);
+        salleEauEquipements.setFieldName("Équipements");
+        salleEauEquipements.setFieldType(FieldType.EQUIPMENT_LIST);
+        salleEauEquipements.setIsRequired(false);
+        salleEauEquipements.setDisplayOrder(1);
+        roomTypeFieldDefinitionRepository.save(salleEauEquipements);
+
+        RoomTypeFieldDefinition salleEauImages = new RoomTypeFieldDefinition();
+        salleEauImages.setRoomType(salleEau);
+        salleEauImages.setFieldName("Images");
+        salleEauImages.setFieldType(FieldType.IMAGE_LIST);
+        salleEauImages.setIsRequired(false);
+        salleEauImages.setDisplayOrder(2);
+        roomTypeFieldDefinitionRepository.save(salleEauImages);
+
+        log.info("Room type 'Salle d'eau' created with fields 'Équipements' and 'Images'");
+
+        log.info("==================== ROOM TYPES INITIALIZATION COMPLETE ====================");
+        log.info("3 room types initialized:");
+        log.info("  - Cuisine (with Équipements)");
+        log.info("  - Chambre à coucher (with Surface, Images)");
+        log.info("  - Salle d'eau (with Équipements, Images)");
     }
 
 }
