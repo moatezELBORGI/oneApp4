@@ -195,7 +195,7 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen> {
                         context,
                         MaterialPageRoute(
                           builder: (context) => PropertyDetailsEditableScreen(
-                            apartmentId: int.parse(property.idApartment!),
+                            apartmentId: property.idApartment ?? '',
                             apartmentLabel: property.apartmentLabel ?? 'Appartement ${property.apartmentNumber}',
                           ),
                         ),
