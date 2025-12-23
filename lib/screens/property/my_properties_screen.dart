@@ -8,7 +8,7 @@ import '../apartment/apartment_rooms_screen.dart';
 import '../lease/lease_contracts_screen.dart';
 import '../lease/contract_history_screen.dart';
 import '../inventory/inventories_screen.dart';
-import 'property_detail_screen.dart';
+import 'property_details_editable_screen.dart';
 
 class MyPropertiesScreen extends StatefulWidget {
   const MyPropertiesScreen({Key? key}) : super(key: key);
@@ -194,8 +194,8 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => PropertyDetailScreen(
-                            apartmentId: property.idApartment!,
+                          builder: (context) => PropertyDetailsEditableScreen(
+                            apartmentId: int.parse(property.idApartment!),
                             apartmentLabel: property.apartmentLabel ?? 'Appartement ${property.apartmentNumber}',
                           ),
                         ),
