@@ -213,7 +213,7 @@ class _AdminBuildingScreenState extends State<AdminBuildingScreen> {
               context,
               MaterialPageRoute(
                 builder: (context) => CreateApartmentWizardScreen(
-                  buildingId: _currentBuildingId!,
+                  buildingId:  _currentBuildingId!,
                   maxFloors: _maxFloors ?? 10,
                   owners: owners,
                 ),

@@ -555,142 +555,142 @@ public class DataInitializationService implements CommandLineRunner {
         });
     }
 
- /*   private void initializeOwnerTenantData() {
-        if (leaseContractRepository.count() > 0) {
-            log.info("Owner/Tenant data already initialized, skipping...");
-            return;
-        }
+    /*   private void initializeOwnerTenantData() {
+           if (leaseContractRepository.count() > 0) {
+               log.info("Owner/Tenant data already initialized, skipping...");
+               return;
+           }
 
-        log.info("Initializing Owner/Tenant test data...");
+           log.info("Initializing Owner/Tenant test data...");
 
-        Building buildingLiege = buildingRepository.findById("BEL-2024-DM-LIEGE").orElse(null);
-        if (buildingLiege == null) {
-            log.warn("Building not found, skipping owner/tenant initialization");
-            return;
-        }
+           Building buildingLiege = buildingRepository.findById("BEL-2024-DM-LIEGE").orElse(null);
+           if (buildingLiege == null) {
+               log.warn("Building not found, skipping owner/tenant initialization");
+               return;
+           }
 
-        Resident owner1 = Resident.builder()
-                .idUsers(UUID.randomUUID().toString())
-                .fname("Pierre")
-                .lname("Dupont")
-                .email("pierre.dupont@owner.com")
-                .password(passwordEncoder.encode("owner123"))
-                .phoneNumber("+32470111222")
-                .role(UserRole.OWNER)
-                .accountStatus(AccountStatus.ACTIVE)
-                .isEnabled(true)
-                .isAccountNonExpired(true)
-                .isAccountNonLocked(true)
-                .isCredentialsNonExpired(true)
-                .build();
-        owner1 = residentRepository.save(owner1);
-        log.info("Created owner: Pierre Dupont (pierre.dupont@owner.com / owner123)");
+           Resident owner1 = Resident.builder()
+                   .idUsers(UUID.randomUUID().toString())
+                   .fname("Pierre")
+                   .lname("Dupont")
+                   .email("pierre.dupont@owner.com")
+                   .password(passwordEncoder.encode("owner123"))
+                   .phoneNumber("+32470111222")
+                   .role(UserRole.OWNER)
+                   .accountStatus(AccountStatus.ACTIVE)
+                   .isEnabled(true)
+                   .isAccountNonExpired(true)
+                   .isAccountNonLocked(true)
+                   .isCredentialsNonExpired(true)
+                   .build();
+           owner1 = residentRepository.save(owner1);
+           log.info("Created owner: Pierre Dupont (pierre.dupont@owner.com / owner123)");
 
-        ResidentBuilding rbOwner1 = ResidentBuilding.builder()
-                .resident(owner1)
-                .building(buildingLiege)
-                .roleInBuilding(UserRole.OWNER)
-                .build();
-        residentBuildingRepository.save(rbOwner1);
+           ResidentBuilding rbOwner1 = ResidentBuilding.builder()
+                   .resident(owner1)
+                   .building(buildingLiege)
+                   .roleInBuilding(UserRole.OWNER)
+                   .build();
+           residentBuildingRepository.save(rbOwner1);
 
-        Resident tenant1 = Resident.builder()
-                .idUsers(UUID.randomUUID().toString())
-                .fname("Marie")
-                .lname("Martin")
-                .email("marie.martin@tenant.com")
-                .password(passwordEncoder.encode("tenant123"))
-                .phoneNumber("+32470333444")
-                .role(UserRole.RESIDENT)
-                .accountStatus(AccountStatus.ACTIVE)
-                .isEnabled(true)
-                .isAccountNonExpired(true)
-                .isAccountNonLocked(true)
-                .isCredentialsNonExpired(true)
-                .build();
-        tenant1 = residentRepository.save(tenant1);
-        log.info("Created tenant: Marie Martin (marie.martin@tenant.com / tenant123)");
+           Resident tenant1 = Resident.builder()
+                   .idUsers(UUID.randomUUID().toString())
+                   .fname("Marie")
+                   .lname("Martin")
+                   .email("marie.martin@tenant.com")
+                   .password(passwordEncoder.encode("tenant123"))
+                   .phoneNumber("+32470333444")
+                   .role(UserRole.RESIDENT)
+                   .accountStatus(AccountStatus.ACTIVE)
+                   .isEnabled(true)
+                   .isAccountNonExpired(true)
+                   .isAccountNonLocked(true)
+                   .isCredentialsNonExpired(true)
+                   .build();
+           tenant1 = residentRepository.save(tenant1);
+           log.info("Created tenant: Marie Martin (marie.martin@tenant.com / tenant123)");
 
-        Apartment apt101 = apartmentRepository.findById("BEL-2024-DM-LIEGE-A101").orElse(null);
-        if (apt101 != null) {
-            apt101.setOwner(owner1);
-            apt101.setTenant(tenant1);
-            apartmentRepository.save(apt101);
+           Apartment apt101 = apartmentRepository.findById("BEL-2024-DM-LIEGE-A101").orElse(null);
+           if (apt101 != null) {
+               apt101.setOwner(owner1);
+               apt101.setTenant(tenant1);
+               apartmentRepository.save(apt101);
 
-            ApartmentRoomLegacy room1 = ApartmentRoom.builder()
-                    .apartmentId(apt101.getIdApartment())
-                    .roomName("Salon")
-                   // .roomType("living_room")
-                    //.description("Grand salon lumineux avec baie vitrée")
-                    .orderIndex(0)
-                    .build();
-            apartmentRoomLegacyRepository.save(room1);
+               ApartmentRoomLegacy room1 = ApartmentRoom.builder()
+                       .apartmentId(apt101.getIdApartment())
+                       .roomName("Salon")
+                      // .roomType("living_room")
+                       //.description("Grand salon lumineux avec baie vitrée")
+                       .orderIndex(0)
+                       .build();
+               apartmentRoomLegacyRepository.save(room1);
 
-            ApartmentRoomLegacy room2 = ApartmentRoom.builder()
-                    .apartment(apt101)
-                    .roomName("Chambre principale")
-                    .roomType("bedroom")
-                    .description("Chambre spacieuse avec placard intégré")
-                    .orderIndex(1)
-                    .build();
-            apartmentRoomLegacyRepository.save(room2);
+               ApartmentRoomLegacy room2 = ApartmentRoom.builder()
+                       .apartment(apt101)
+                       .roomName("Chambre principale")
+                       .roomType("bedroom")
+                       .description("Chambre spacieuse avec placard intégré")
+                       .orderIndex(1)
+                       .build();
+               apartmentRoomLegacyRepository.save(room2);
 
-            ApartmentRoomLegacy room3 = ApartmentRoom.builder()
-                    .apartment(apt101)
-                    .roomName("Cuisine")
-                    .roomType("kitchen")
-                    .description("Cuisine équipée moderne")
-                    .orderIndex(2)
-                    .build();
-            apartmentRoomLegacyRepository.save(room3);
+               ApartmentRoomLegacy room3 = ApartmentRoom.builder()
+                       .apartment(apt101)
+                       .roomName("Cuisine")
+                       .roomType("kitchen")
+                       .description("Cuisine équipée moderne")
+                       .orderIndex(2)
+                       .build();
+               apartmentRoomLegacyRepository.save(room3);
 
-            ApartmentRoomLegacy room4 = ApartmentRoom.builder()
-                    .apartment(apt101)
-                    .roomName("Salle de bain")
-                    .roomType("bathroom")
-                    .description("Salle de bain avec douche et baignoire")
-                    .orderIndex(3)
-                    .build();
-            apartmentRoomLegacyRepository.save(room4);
+               ApartmentRoomLegacy room4 = ApartmentRoom.builder()
+                       .apartment(apt101)
+                       .roomName("Salle de bain")
+                       .roomType("bathroom")
+                       .description("Salle de bain avec douche et baignoire")
+                       .orderIndex(3)
+                       .build();
+               apartmentRoomLegacyRepository.save(room4);
 
-            log.info("Created 4 rooms for apartment 101");
+               log.info("Created 4 rooms for apartment 101");
 
-            LeaseContract contract1 = LeaseContract.builder()
-                    .apartment(apt101)
-                    .owner(owner1)
-                    .tenant(tenant1)
-                    .startDate(java.time.LocalDate.now())
-                    .endDate(java.time.LocalDate.now().plusYears(9))
-                    .initialRentAmount(new BigDecimal("950.00"))
-                    .currentRentAmount(new BigDecimal("950.00"))
-                    .depositAmount(new BigDecimal("1900.00"))
-                    .chargesAmount(new BigDecimal("150.00"))
-                    .regionCode("BE-BXL")
-                    .status(LeaseContractStatus.DRAFT)
-                    .build();
-            contract1 = leaseContractRepository.save(contract1);
-            log.info("Created lease contract for apartment 101");
-//
-            ResidentBuilding rbTenant1 = ResidentBuilding.builder()
-                    .resident(tenant1)
-                    .building(buildingLiege)
-                    .apartment(apt101)
-                    .roleInBuilding(UserRole.RESIDENT)
-                    .build();
-            residentBuildingRepository.save(rbTenant1);
-        }
+               LeaseContract contract1 = LeaseContract.builder()
+                       .apartment(apt101)
+                       .owner(owner1)
+                       .tenant(tenant1)
+                       .startDate(java.time.LocalDate.now())
+                       .endDate(java.time.LocalDate.now().plusYears(9))
+                       .initialRentAmount(new BigDecimal("950.00"))
+                       .currentRentAmount(new BigDecimal("950.00"))
+                       .depositAmount(new BigDecimal("1900.00"))
+                       .chargesAmount(new BigDecimal("150.00"))
+                       .regionCode("BE-BXL")
+                       .status(LeaseContractStatus.DRAFT)
+                       .build();
+               contract1 = leaseContractRepository.save(contract1);
+               log.info("Created lease contract for apartment 101");
+   //
+               ResidentBuilding rbTenant1 = ResidentBuilding.builder()
+                       .resident(tenant1)
+                       .building(buildingLiege)
+                       .apartment(apt101)
+                       .roleInBuilding(UserRole.RESIDENT)
+                       .build();
+               residentBuildingRepository.save(rbTenant1);
+           }
 
-        if (leaseContractArticleRepository.count() == 0) {
-            initializeBrusselsLeaseArticles();
-            log.info("Created standard lease contract articles for BE-BXL (Brussels)");
-        }
+           if (leaseContractArticleRepository.count() == 0) {
+               initializeBrusselsLeaseArticles();
+               log.info("Created standard lease contract articles for BE-BXL (Brussels)");
+           }
 
-        log.info("==================== OWNER/TENANT DATA INITIALIZED ====================");
-        log.info("Test Owner: pierre.dupont@owner.com / owner123");
-        log.info("Test Tenant: marie.martin@tenant.com / tenant123");
-        log.info("Lease Contract created for apartment 101 (DRAFT status)");
-        log.info("4 rooms created for apartment 101");
-    }
-*/
+           log.info("==================== OWNER/TENANT DATA INITIALIZED ====================");
+           log.info("Test Owner: pierre.dupont@owner.com / owner123");
+           log.info("Test Tenant: marie.martin@tenant.com / tenant123");
+           log.info("Lease Contract created for apartment 101 (DRAFT status)");
+           log.info("4 rooms created for apartment 101");
+       }
+   */
     private void initializeBrusselsLeaseArticles() {
         List<LeaseContractArticle> articles = new ArrayList<>();
 

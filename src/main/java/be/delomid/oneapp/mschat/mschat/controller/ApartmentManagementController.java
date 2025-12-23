@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/apartment-management")
+@RequestMapping("/apartment-management")
 @RequiredArgsConstructor
 @Tag(name = "Apartment Management", description = "Dynamic apartment management with rooms and custom fields")
 @SecurityRequirement(name = "bearer-jwt")
@@ -63,7 +63,7 @@ public class ApartmentManagementController {
     @GetMapping("/room-types/{buildingId}")
     @Operation(summary = "Get room types for a building (including system types)")
     public ResponseEntity<List<RoomTypeDto>> getRoomTypes(@PathVariable String buildingId) {
-        List<RoomTypeDto> result = apartmentManagementService.getRoomTypes(Long.parseLong(buildingId));
+        List<RoomTypeDto> result = apartmentManagementService.getRoomTypes(buildingId);
         return ResponseEntity.ok(result);
     }
 }

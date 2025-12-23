@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../models/apartment_details_model.dart';
 import '../../models/apartment_complete_model.dart';
+import '../../models/apartment_room_complete_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/apartment_details_service.dart';
 import '../../services/apartment_management_service.dart';

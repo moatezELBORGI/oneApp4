@@ -13,6 +13,6 @@ import java.util.List;
 public class RoomTypeDto {
     private Long id;
     private String name;
-    private Long buildingId;
+    private String buildingId;
     private List<RoomTypeFieldDefinitionDto> fieldDefinitions = new ArrayList<>();
 }

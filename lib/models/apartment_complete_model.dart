@@ -1,13 +1,13 @@
 import 'apartment_room_complete_model.dart';
 
 class ApartmentCompleteModel {
-  final int id;
+  final String id;
   final String? propertyName;
   final String number;
   final int floor;
   final String? ownerId;
   final String? ownerName;
-  final int buildingId;
+  final String buildingId;
   final String? buildingName;
   final List<ApartmentRoomCompleteModel> rooms;
   final List<ApartmentCustomFieldModel> customFields;

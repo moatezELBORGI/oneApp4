@@ -26,7 +26,7 @@ public class ApartmentController {
     public ResponseEntity<ApartmentDto> createApartment(
             @Valid @RequestBody CreateApartmentRequest request,
             Authentication authentication) {
-        
+
         ApartmentDto apartment = apartmentService.createApartment(request);
         return ResponseEntity.ok(apartment);
     }
@@ -35,7 +35,7 @@ public class ApartmentController {
     public ResponseEntity<Page<ApartmentDto>> getApartmentsByBuilding(
             @PathVariable String buildingId,
             Pageable pageable) {
-        
+
         Page<ApartmentDto> apartments = apartmentService.getApartmentsByBuilding(buildingId, pageable);
         return ResponseEntity.ok(apartments);
     }
@@ -72,7 +72,7 @@ public class ApartmentController {
             @PathVariable String apartmentId,
             @PathVariable String userId,
             Authentication authentication) {
-        
+
         ApartmentDto apartment = apartmentService.assignResidentToApartment(apartmentId, userId);
         return ResponseEntity.ok(apartment);
     }
@@ -81,7 +81,7 @@ public class ApartmentController {
     public ResponseEntity<ApartmentDto> removeResidentFromApartment(
             @PathVariable String apartmentId,
             Authentication authentication) {
-        
+
         ApartmentDto apartment = apartmentService.removeResidentFromApartment(apartmentId);
         return ResponseEntity.ok(apartment);
     }
@@ -91,7 +91,7 @@ public class ApartmentController {
             @PathVariable String apartmentId,
             @Valid @RequestBody CreateApartmentRequest request,
             Authentication authentication) {
-        
+
         ApartmentDto apartment = apartmentService.updateApartment(apartmentId, request);
         return ResponseEntity.ok(apartment);
     }
@@ -100,7 +100,7 @@ public class ApartmentController {
     public ResponseEntity<Void> deleteApartment(
             @PathVariable String apartmentId,
             Authentication authentication) {
-        
+
         apartmentService.deleteApartment(apartmentId);
         return ResponseEntity.ok().build();
     }

@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../models/apartment_details_model.dart';
 import '../../models/apartment_complete_model.dart';
+import '../../models/apartment_room_complete_model.dart';
 import '../../services/apartment_details_service.dart';
 import '../../services/apartment_management_service.dart';
 import '../apartment/edit_apartment_section_screen.dart';

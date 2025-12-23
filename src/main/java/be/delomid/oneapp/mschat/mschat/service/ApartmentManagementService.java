@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -38,6 +39,8 @@ public class ApartmentManagementService {
         Resident resident=residentRepository.findById(request.getOwnerId()).orElseThrow(() -> new RuntimeException("Owner not found"));
 
         Apartment apartment = new Apartment();
+        String apartmentId=request.getBuildingId()+"-"+ LocalDate.now().getYear()+request.getNumber();
+apartment.setIdApartment(apartmentId);
         apartment.setApartmentLabel(request.getPropertyName());
         apartment.setApartmentNumber(request.getNumber());
         apartment.setApartmentFloor(request.getFloor());
@@ -48,7 +51,7 @@ public class ApartmentManagementService {
         List<ApartmentRoom> savedRooms = new ArrayList<>();
         for (CreateRoomRequest roomRequest : request.getRooms()) {
             ApartmentRoom room = new ApartmentRoom();
-            room.setApartmentId(apartment.getIdApartment());
+            room.setApartment(apartment);
 
             RoomType roomType = roomTypeRepository.findById(roomRequest.getRoomTypeId())
                     .orElseThrow(() -> new RuntimeException("Room type not found"));
@@ -133,7 +136,7 @@ public class ApartmentManagementService {
         buildingRepository.findById(apartment.getBuilding().getBuildingId())
                 .ifPresent(building -> dto.setBuildingName(building.getBuildingLabel()));
 
-        List<ApartmentRoom> rooms = apartmentRoomRepository.findByApartmentIdOrderById(apartmentId);
+        List<ApartmentRoom> rooms = apartmentRoomRepository.findByApartmentOrderById(apartment);
         dto.setRooms(rooms.stream().map(this::convertToCompleteDto).collect(Collectors.toList()));
 
         List<ApartmentCustomField> customFields = apartmentCustomFieldRepository.findByApartmentIdOrderByDisplayOrder(apartmentId);
@@ -143,7 +146,7 @@ public class ApartmentManagementService {
     }
 
     @Transactional(readOnly = true)
-    public List<RoomTypeDto> getRoomTypes(Long buildingId) {
+    public List<RoomTypeDto> getRoomTypes(String buildingId) {
         List<RoomType> roomTypes = roomTypeRepository.findByBuildingIdOrBuildingIdIsNull(buildingId);
         return roomTypes.stream().map(this::convertToDto).collect(Collectors.toList());
     }
@@ -156,11 +159,13 @@ public class ApartmentManagementService {
 
     @Transactional
     public ApartmentCompleteDto updateApartmentRooms(String apartmentId, List<CreateRoomRequest> roomsRequest) {
-        apartmentRoomRepository.deleteAll(apartmentRoomRepository.findByApartmentIdOrderById(apartmentId));
+        Apartment apartment = apartmentRepository.findById(apartmentId)
+                .orElseThrow(() -> new RuntimeException("Apartment not found"));
+        apartmentRoomRepository.deleteAll(apartmentRoomRepository.findByApartmentOrderById(apartment));
 
         for (CreateRoomRequest roomRequest : roomsRequest) {
             ApartmentRoom room = new ApartmentRoom();
-            room.setApartmentId(apartmentId);
+            room.setApartment(apartment);
 
             RoomType roomType = roomTypeRepository.findById(roomRequest.getRoomTypeId())
                     .orElseThrow(() -> new RuntimeException("Room type not found"));
@@ -255,7 +260,7 @@ public class ApartmentManagementService {
     private ApartmentRoomCompleteDto convertToCompleteDto(ApartmentRoom room) {
         ApartmentRoomCompleteDto dto = new ApartmentRoomCompleteDto();
         dto.setId(room.getId());
-        dto.setApartmentId(room.getApartmentId());
+        dto.setApartmentId(room.getApartment().getIdApartment());
         dto.setRoomName(room.getRoomName());
         dto.setRoomType(convertToDto(room.getRoomType()));
 

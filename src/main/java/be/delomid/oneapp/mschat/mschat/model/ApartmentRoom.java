@@ -21,13 +21,14 @@ public class ApartmentRoom {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "apartment_id", nullable = false)
-    private String apartmentId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "apartment_id", nullable = false)
+    private Apartment apartment;
 
     private int orderIndex;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "room_type_id", nullable = false)
+    @JoinColumn(name = "room_type", nullable = false)
     private RoomType roomType;
 
     @Column(name = "room_name", length = 255)

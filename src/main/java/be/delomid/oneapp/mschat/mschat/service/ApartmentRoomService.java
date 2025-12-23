@@ -46,7 +46,7 @@ public class ApartmentRoomService {
         }
 
         ApartmentRoom room = ApartmentRoom.builder()
-                .apartmentId(apartment.getIdApartment())
+                .apartment(apartment)
                 .roomName(dto.getRoomName())
                 .roomType(roomType)
                 .description(dto.getDescription())
@@ -58,7 +58,9 @@ public class ApartmentRoomService {
     }
 
     public List<ApartmentRoomDto> getRoomsByApartment(String apartmentId) {
-        return apartmentRoomRepository.findByApartmentIdOrderById(apartmentId)
+        Apartment apartment = apartmentRepository.findById(apartmentId)
+                .orElseThrow(() -> new RuntimeException("Apartment not found"));
+        return apartmentRoomRepository.findByApartmentOrderById(apartment)
                 .stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
@@ -126,7 +128,7 @@ public class ApartmentRoomService {
 
         return ApartmentRoomDto.builder()
                 .id(room.getId().toString())
-                .apartmentId(room.getApartmentId())
+                .apartmentId(room.getApartment().getIdApartment())
                 .roomName(room.getRoomName())
                 .roomType(room.getRoomType() != null ? room.getRoomType().getId().toString() : null)
                 .description(room.getDescription())

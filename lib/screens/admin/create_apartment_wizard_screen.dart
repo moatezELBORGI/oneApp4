@@ -231,9 +231,9 @@ class _CreateApartmentWizardScreenState
                   if (_currentStep > 0)
                     Expanded(
                       child: CustomButton(
-                        text: 'Retour',
-                        onPressed: details.onStepCancel
-                       ),
+                          text: 'Retour',
+                          onPressed: details.onStepCancel
+                      ),
                     ),
                 ],
               ),

@@ -23,7 +23,7 @@ public class RoomType {
     private String name;
 
     @Column(name = "building_id")
-    private Long buildingId;
+    private String buildingId;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
