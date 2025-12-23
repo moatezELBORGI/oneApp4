@@ -3,8 +3,10 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import '../models/apartment_room_model.dart';
+import '../models/room_type_model.dart';
 import '../utils/constants.dart';
 import 'storage_service.dart';
+import '../widgets/equipment_selector_widget.dart';
 
 class ApartmentRoomService {
    Future<String?> _getToken() async {
@@ -157,6 +159,113 @@ class ApartmentRoomService {
       }
     } catch (e) {
       throw Exception('Error deleting image: $e');
+    }
+  }
+
+  Future<List<RoomTypeModel>> getAllRoomTypes() async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.get(
+        Uri.parse('${Constants.baseUrl}/apartment-rooms/room-types'),
+        headers: headers,
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
+        return data.map((json) => RoomTypeModel.fromJson(json)).toList();
+      } else {
+        throw Exception('Failed to load room types: ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('Error fetching room types: $e');
+    }
+  }
+
+  Future<String> createRoomWithEquipments({
+    required String apartmentId,
+    required String roomName,
+    required String roomTypeId,
+    List<SelectedEquipment>? equipments,
+  }) async {
+    try {
+      final headers = await _getHeaders();
+
+      final equipmentsData = equipments?.map((eq) {
+        return {
+          'name': eq.template.name,
+          'description': eq.template.description,
+        };
+      }).toList() ?? [];
+
+      final response = await http.post(
+        Uri.parse('${Constants.baseUrl}/apartment-rooms/with-equipments'),
+        headers: headers,
+        body: jsonEncode({
+          'apartmentId': apartmentId,
+          'roomName': roomName,
+          'roomTypeId': roomTypeId,
+          'equipments': equipmentsData,
+        }),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final responseData = jsonDecode(response.body);
+        final roomId = responseData['id']?.toString() ?? '';
+
+        if (equipments != null && equipments.isNotEmpty) {
+          for (var i = 0; i < equipments.length; i++) {
+            final equipment = equipments[i];
+            final equipmentId = responseData['equipments']?[i]?['id']?.toString();
+
+            if (equipment.images.isNotEmpty && equipmentId != null) {
+              for (var image in equipment.images) {
+                await _uploadEquipmentImage(equipmentId, image);
+              }
+            }
+          }
+        }
+
+        return roomId;
+      } else {
+        throw Exception('Failed to create room: ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('Error creating room with equipments: $e');
+    }
+  }
+
+  Future<void> _uploadEquipmentImage(String equipmentId, File imageFile) async {
+    try {
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse('${Constants.baseUrl}/apartment-rooms/equipments/$equipmentId/upload-image'),
+      );
+      final token = await _getToken();
+
+      request.headers['Authorization'] = 'Bearer $token';
+
+      var stream = http.ByteStream(imageFile.openRead());
+      var length = await imageFile.length();
+      final mimeType = _getMimeType(imageFile.path);
+
+      var multipartFile = http.MultipartFile(
+        'file',
+        stream,
+        length,
+        filename: imageFile.path.split('/').last,
+        contentType: MediaType.parse(mimeType),
+      );
+
+      request.files.add(multipartFile);
+
+      var streamedResponse = await request.send();
+      var response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        throw Exception('Failed to upload equipment image: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error uploading equipment image: $e');
     }
   }
 

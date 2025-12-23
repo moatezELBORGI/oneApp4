@@ -1,22 +1,20 @@
 package be.delomid.oneapp.mschat.mschat.service;
 
-import be.delomid.oneapp.mschat.mschat.dto.ApartmentRoomDto;
-import be.delomid.oneapp.mschat.mschat.dto.ApartmentRoomPhotoDto;
-import be.delomid.oneapp.mschat.mschat.model.Apartment;
-import be.delomid.oneapp.mschat.mschat.model.ApartmentRoom;
-import be.delomid.oneapp.mschat.mschat.model.RoomImage;
-import be.delomid.oneapp.mschat.mschat.model.RoomType;
-import be.delomid.oneapp.mschat.mschat.repository.ApartmentRepository;
-import be.delomid.oneapp.mschat.mschat.repository.ApartmentRoomRepository;
-import be.delomid.oneapp.mschat.mschat.repository.RoomImageRepository;
-import be.delomid.oneapp.mschat.mschat.repository.RoomTypeRepository;
+import be.delomid.oneapp.mschat.mschat.dto.*;
+import be.delomid.oneapp.mschat.mschat.model.*;
+import be.delomid.oneapp.mschat.mschat.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,6 +26,10 @@ public class ApartmentRoomService {
     private final RoomImageRepository roomImageRepository;
     private final ApartmentRepository apartmentRepository;
     private final RoomTypeRepository roomTypeRepository;
+    private final RoomEquipmentRepository roomEquipmentRepository;
+
+    @Value("${app.upload.dir:uploads}")
+    private String uploadDir;
 
     @Transactional
     public ApartmentRoomDto createRoom(ApartmentRoomDto dto) {
@@ -147,6 +149,109 @@ public class ApartmentRoomService {
                 .caption(caption)
                 .orderIndex(image.getDisplayOrder())
                 .createdAt(image.getCreatedAt())
+                .build();
+    }
+
+    public List<RoomTypeDto> getAllRoomTypes() {
+        return roomTypeRepository.findAll().stream()
+                .map(this::convertRoomTypeToDto)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public Map<String, Object> createRoomWithEquipments(CreateRoomWithEquipmentsRequest request) {
+        Apartment apartment = apartmentRepository.findById(String.valueOf(request.getApartmentId()))
+                .orElseThrow(() -> new RuntimeException("Apartment not found"));
+
+        RoomType roomType = roomTypeRepository.findById(request.getRoomTypeId())
+                .orElseThrow(() -> new RuntimeException("RoomType not found"));
+
+        ApartmentRoom room = ApartmentRoom.builder()
+                .apartment(apartment)
+                .roomName(request.getRoomName())
+                .roomType(roomType)
+                .orderIndex(0)
+                .build();
+
+        room = apartmentRoomRepository.save(room);
+
+        List<Map<String, Object>> equipmentsList = new ArrayList<>();
+        if (request.getEquipments() != null) {
+            for (CreateRoomWithEquipmentsRequest.EquipmentData equipmentData : request.getEquipments()) {
+                RoomEquipment equipment = RoomEquipment.builder()
+                        .apartmentRoom(room)
+                        .name(equipmentData.getName())
+                        .description(equipmentData.getDescription())
+                        .build();
+
+                equipment = roomEquipmentRepository.save(equipment);
+
+                Map<String, Object> equipmentMap = new HashMap<>();
+                equipmentMap.put("id", equipment.getId());
+                equipmentMap.put("name", equipment.getName());
+                equipmentMap.put("description", equipment.getDescription());
+                equipmentsList.add(equipmentMap);
+            }
+        }
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("id", room.getId());
+        result.put("roomName", room.getRoomName());
+        result.put("apartmentId", room.getApartment().getIdApartment());
+        result.put("roomTypeId", room.getRoomType().getId());
+        result.put("equipments", equipmentsList);
+
+        return result;
+    }
+
+    @Transactional
+    public RoomImageDto uploadEquipmentImage(Long equipmentId, MultipartFile file) {
+        RoomEquipment equipment = roomEquipmentRepository.findById(equipmentId)
+                .orElseThrow(() -> new RuntimeException("Equipment not found"));
+
+        try {
+            String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+            Path uploadPath = Paths.get(uploadDir, "equipment-images");
+
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
+
+            Path filePath = uploadPath.resolve(fileName);
+            Files.copy(file.getInputStream(), filePath);
+
+            String imageUrl = "/uploads/equipment-images/" + fileName;
+
+            RoomImage roomImage = RoomImage.builder()
+                    .equipment(equipment)
+                    .imageUrl(imageUrl)
+                    .displayOrder(0)
+                    .build();
+
+            roomImage = roomImageRepository.save(roomImage);
+
+            return convertToRoomImageDto(roomImage);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to upload image: " + e.getMessage());
+        }
+    }
+
+    private RoomImageDto convertToRoomImageDto(RoomImage image) {
+        return RoomImageDto.builder()
+                .id(image.getId())
+                .imageUrl(image.getImageUrl())
+                .apartmentRoomId(image.getApartmentRoom() != null ? image.getApartmentRoom().getId() : null)
+                .equipmentId(image.getEquipment() != null ? image.getEquipment().getId() : null)
+                .displayOrder(image.getDisplayOrder())
+                .build();
+    }
+
+    private RoomTypeDto convertRoomTypeToDto(RoomType roomType) {
+        return RoomTypeDto.builder()
+                .id(roomType.getId())
+                .name(roomType.getName())
+                .description(roomType.getDescription())
+                .icon(roomType.getIcon())
                 .build();
     }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/apartment_room_model.dart';
 import '../../services/apartment_room_service.dart';
+import 'add_room_screen.dart';
 
 class ApartmentRoomsScreen extends StatefulWidget {
   final String apartmentId;
@@ -41,76 +42,15 @@ class _ApartmentRoomsScreenState extends State<ApartmentRoomsScreen> {
   }
 
   Future<void> _showAddRoomDialog() async {
-    final roomNameController = TextEditingController();
-    final roomTypeController = TextEditingController();
-    final descriptionController = TextEditingController();
-
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Ajouter une pièce'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: roomNameController,
-                decoration: const InputDecoration(labelText: 'Nom de la pièce *'),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: roomTypeController,
-                decoration: const InputDecoration(labelText: 'Type (ex: bedroom, living_room)'),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: descriptionController,
-                decoration: const InputDecoration(labelText: 'Description'),
-                maxLines: 3,
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Annuler'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (roomNameController.text.isNotEmpty) {
-                Navigator.pop(context, true);
-              }
-            },
-            child: const Text('Ajouter'),
-          ),
-        ],
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddRoomScreen(apartmentId: widget.apartmentId),
       ),
     );
 
     if (result == true) {
-      try {
-        await _roomService.createRoom(
-          apartmentId: widget.apartmentId,
-          roomName: roomNameController.text,
-          roomType: roomTypeController.text.isNotEmpty ? roomTypeController.text : null,
-          description: descriptionController.text.isNotEmpty ? descriptionController.text : null,
-          orderIndex: _rooms?.length ?? 0,
-        );
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Pièce ajoutée avec succès')),
-          );
-        }
-        _loadRooms();
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Erreur: $e')),
-          );
-        }
-      }
+      _loadRooms();
     }
   }
 
