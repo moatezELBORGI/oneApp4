@@ -27,14 +27,14 @@ class ApartmentCompleteModel {
 
   factory ApartmentCompleteModel.fromJson(Map<String, dynamic> json) {
     return ApartmentCompleteModel(
-      id: json['id'],
-      propertyName: json['propertyName'],
-      number: json['number'],
-      floor: json['floor'],
-      ownerId: json['ownerId'],
-      ownerName: json['ownerName'],
-      buildingId: json['buildingId'],
-      buildingName: json['buildingName'],
+      id: json['id']?.toString() ?? '',
+      propertyName: json['propertyName']?.toString(),
+      number: json['number']?.toString() ?? '',
+      floor: json['floor'] is int ? json['floor'] : int.tryParse(json['floor']?.toString() ?? '0') ?? 0,
+      ownerId: json['ownerId']?.toString(),
+      ownerName: json['ownerName']?.toString(),
+      buildingId: json['buildingId']?.toString() ?? '',
+      buildingName: json['buildingName']?.toString(),
       rooms: (json['rooms'] as List?)
               ?.map((e) => ApartmentRoomCompleteModel.fromJson(e))
               .toList() ??

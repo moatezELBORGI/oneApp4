@@ -1,8 +1,8 @@
 import 'room_type_model.dart';
 
 class ApartmentRoomCompleteModel {
-  final int id;
-  final int apartmentId;
+  final String id;
+  final String apartmentId;
   final String? roomName;
   final RoomTypeModel roomType;
   final List<RoomFieldValueModel> fieldValues;
@@ -21,9 +21,9 @@ class ApartmentRoomCompleteModel {
 
   factory ApartmentRoomCompleteModel.fromJson(Map<String, dynamic> json) {
     return ApartmentRoomCompleteModel(
-      id: json['id'],
-      apartmentId: json['apartmentId'],
-      roomName: json['roomName'],
+      id: json['id']?.toString() ?? '',
+      apartmentId: json['apartmentId']?.toString() ?? '',
+      roomName: json['roomName']?.toString(),
       roomType: RoomTypeModel.fromJson(json['roomType']),
       fieldValues: (json['fieldValues'] as List?)
               ?.map((e) => RoomFieldValueModel.fromJson(e))
