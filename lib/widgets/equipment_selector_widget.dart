@@ -65,6 +65,10 @@ class _EquipmentSelectorWidgetState extends State<EquipmentSelectorWidget> {
         _availableTemplates = templates;
         _isLoading = false;
       });
+
+      if (widget.initialEquipments == null || widget.initialEquipments!.isEmpty) {
+        _autoSelectDefaultEquipments();
+      }
     } catch (e) {
       setState(() => _isLoading = false);
       if (mounted) {
@@ -72,6 +76,51 @@ class _EquipmentSelectorWidgetState extends State<EquipmentSelectorWidget> {
           SnackBar(content: Text('Erreur de chargement des équipements: $e')),
         );
       }
+    }
+  }
+
+  void _autoSelectDefaultEquipments() {
+    if (_availableTemplates.isEmpty) return;
+
+    final defaultEquipmentNames = <String>[];
+
+    final hasKitchenEquipment = _availableTemplates.any(
+        (t) => t.name.toLowerCase().contains('four') ||
+               t.name.toLowerCase().contains('réfrigérateur'));
+
+    final hasBathroomEquipment = _availableTemplates.any(
+        (t) => t.name.toLowerCase().contains('douche') ||
+               t.name.toLowerCase().contains('lavabo'));
+
+    if (hasKitchenEquipment) {
+      defaultEquipmentNames.addAll([
+        'four',
+        'plaque de cuisson',
+        'réfrigérateur',
+        'évier',
+        'hotte',
+      ]);
+    } else if (hasBathroomEquipment) {
+      defaultEquipmentNames.addAll([
+        'douche',
+        'lavabo',
+        'toilette',
+        'miroir',
+      ]);
+    }
+
+    final defaultEquipments = _availableTemplates
+        .where((template) => defaultEquipmentNames.any(
+            (name) => template.name.toLowerCase().contains(name.toLowerCase())))
+        .take(4)
+        .map((template) => SelectedEquipment(template: template, images: []))
+        .toList();
+
+    if (defaultEquipments.isNotEmpty) {
+      setState(() {
+        _selectedEquipments = defaultEquipments;
+      });
+      widget.onEquipmentsChanged(_selectedEquipments);
     }
   }
 

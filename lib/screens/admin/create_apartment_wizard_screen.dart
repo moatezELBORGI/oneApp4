@@ -7,6 +7,7 @@ import '../../services/api_service.dart';
 import '../../services/storage_service.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
+import '../../widgets/equipment_selector_widget.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
@@ -129,6 +130,26 @@ class _CreateApartmentWizardScreenState
         });
 
         final List<Map<String, dynamic>> equipmentsData = [];
+
+        for (var selectedEquipment in room.selectedEquipments) {
+          final List<String> uploadedImageUrls = [];
+          for (var imageFile in selectedEquipment.images) {
+            try {
+              final xFile = XFile(imageFile.path);
+              final url = await _uploadImage(xFile);
+              uploadedImageUrls.add(url);
+            } catch (e) {
+              print('Failed to upload equipment image: $e');
+            }
+          }
+
+          equipmentsData.add({
+            'name': selectedEquipment.template.name,
+            'description': selectedEquipment.template.description,
+            'imageUrls': uploadedImageUrls,
+          });
+        }
+
         for (var equipment in room.equipments) {
           equipmentsData.add({
             'name': equipment.name,
@@ -482,67 +503,14 @@ class _CreateApartmentWizardScreenState
         ],
       );
     } else if (fieldDef.fieldType == 'EQUIPMENT_LIST') {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(fieldDef.fieldName),
-          const SizedBox(height: 8),
-          ...room.equipments.asMap().entries.map((entry) {
-            final index = entry.key;
-            final equipment = entry.value;
-            return Card(
-              margin: const EdgeInsets.only(bottom: 8),
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(child: Text(equipment.name)),
-                        IconButton(
-                          icon: const Icon(Icons.delete, size: 20),
-                          onPressed: () {
-                            setState(() {
-                              room.equipments.removeAt(index);
-                            });
-                          },
-                        ),
-                      ],
-                    ),
-                    if (equipment.imageUrls.isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8,
-                        children: equipment.imageUrls.map((url) {
-                          return Container(
-                            width: 60,
-                            height: 60,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
-                              image: DecorationImage(
-                                image: NetworkImage(url),
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            );
-          }).toList(),
-          OutlinedButton.icon(
-            onPressed: () => _showAddEquipmentDialog(room),
-            icon: const Icon(Icons.add),
-            label: const Text('Ajouter un équipement'),
-            style: OutlinedButton.styleFrom(
-              minimumSize: const Size(double.infinity, 40),
-            ),
-          ),
-        ],
+      return EquipmentSelectorWidget(
+        roomTypeId: room.roomType.id.toString(),
+        onEquipmentsChanged: (equipments) {
+          setState(() {
+            room.selectedEquipments = equipments;
+          });
+        },
+        initialEquipments: room.selectedEquipments,
       );
     }
     return TextField(
@@ -704,60 +672,6 @@ class _CreateApartmentWizardScreenState
     );
   }
 
-  Future<void> _showAddEquipmentDialog(CreateRoomData room) async {
-    final nameController = TextEditingController();
-    final descController = TextEditingController();
-
-    await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Ajouter un équipement'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(
-                labelText: 'Nom',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: descController,
-              decoration: const InputDecoration(
-                labelText: 'Description',
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 3,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler'),
-          ),
-          TextButton(
-            onPressed: () {
-              if (nameController.text.isNotEmpty) {
-                setState(() {
-                  room.equipments.add(
-                    EquipmentData(
-                      name: nameController.text,
-                      description: descController.text,
-                    ),
-                  );
-                });
-                Navigator.pop(context);
-              }
-            },
-            child: const Text('Ajouter'),
-          ),
-        ],
-      ),
-    );
-  }
 
   Future<void> _showAddCustomFieldDialog() async {
     final labelController = TextEditingController();
@@ -837,6 +751,7 @@ class CreateRoomData {
   String? customName;
   Map<int, dynamic> fieldValues = {};
   List<EquipmentData> equipments = [];
+  List<SelectedEquipment> selectedEquipments = [];
   List<String> imageUrls = [];
 
   CreateRoomData({
