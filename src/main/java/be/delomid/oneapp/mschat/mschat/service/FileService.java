@@ -188,6 +188,7 @@ public class FileService {
 
         switch (type.toUpperCase()) {
             case "IMAGE":
+            case "IMAGE_LIST":
                 if (!contentType.startsWith("image/")) {
                     throw new IllegalArgumentException("Invalid image file - expected image/* but got " + contentType);
                 }
@@ -198,6 +199,7 @@ public class FileService {
                 }
                 break;
             case "FILE":
+            case "EQUIPMENT_LIST":
                 break;
             default:
                 throw new IllegalArgumentException("Unsupported file type: " + type);

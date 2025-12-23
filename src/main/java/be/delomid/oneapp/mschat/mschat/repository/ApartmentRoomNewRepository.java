@@ -12,5 +12,5 @@ public interface ApartmentRoomNewRepository extends JpaRepository<ApartmentRoom,
     List<ApartmentRoom> findByApartmentIdOrderById(String apartmentId);
 
     @Query("SELECT ar FROM ApartmentRoom ar LEFT JOIN FETCH ar.roomType LEFT JOIN FETCH ar.fieldValues WHERE ar.apartmentId = :apartmentId")
-    List<ApartmentRoom> findByApartmentIdWithDetails(Long apartmentId);
+    List<ApartmentRoom> findByApartmentIdWithDetails(String apartmentId);
 }
