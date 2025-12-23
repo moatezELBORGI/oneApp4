@@ -33,20 +33,8 @@ CREATE TABLE IF NOT EXISTS equipment_templates (
   CONSTRAINT fk_equipment_room_type FOREIGN KEY (room_type_id) REFERENCES room_types(id) ON DELETE CASCADE
 );
 
--- Enable RLS
-ALTER TABLE equipment_templates ENABLE ROW LEVEL SECURITY;
-
--- Policy for reading equipment templates (all authenticated users)
-CREATE POLICY "Authenticated users can view equipment templates"
-  ON equipment_templates FOR SELECT
-  TO authenticated
-  USING (is_active = true);
-
--- Policy for managing equipment templates (only admins via service role)
-CREATE POLICY "Service role can manage equipment templates"
-  ON equipment_templates FOR ALL
-  USING (true)
-  WITH CHECK (true);
+-- RLS not needed for equipment_templates as Spring Boot manages security via JWT
+-- This table contains reference data that should be accessible to all authenticated users
 
 -- Insert default equipment for Cuisine (Kitchen)
 -- First, get the room_type_id for "Cuisine"
