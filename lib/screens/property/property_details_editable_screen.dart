@@ -63,12 +63,8 @@ class _PropertyDetailsEditableScreenState
   Future<void> _loadApartmentData() async {
     setState(() => _isLoading = true);
     try {
-      final apartmentIdInt = int.tryParse(widget.apartmentId);
-      if (apartmentIdInt == null) {
-        throw Exception('ID d\'appartement invalide: ${widget.apartmentId}');
-      }
       final apartment =
-          await _managementService.getApartment(apartmentIdInt);
+          await _managementService.getApartment(widget.apartmentId);
 
       _propertyNameController.text = apartment.propertyName ?? '';
       _numberController.text = apartment.number;
@@ -151,13 +147,8 @@ class _PropertyDetailsEditableScreenState
               })
           .toList();
 
-      final apartmentIdInt = int.tryParse(widget.apartmentId);
-      if (apartmentIdInt == null) {
-        throw Exception('ID d\'appartement invalide');
-      }
-
       await _managementService.updateCustomFields(
-        apartmentIdInt,
+        widget.apartmentId,
         customFieldsData,
       );
 

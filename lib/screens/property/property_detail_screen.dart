@@ -46,7 +46,7 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
 
       ApartmentCompleteModel? completeApartment;
       try {
-        completeApartment = await _managementService.getApartment(int.parse(widget.apartmentId));
+        completeApartment = await _managementService.getApartment(widget.apartmentId);
       } catch (e) {
         print('Could not load complete apartment data: $e');
       }
