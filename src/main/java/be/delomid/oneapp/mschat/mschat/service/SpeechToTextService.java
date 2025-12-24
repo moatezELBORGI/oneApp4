@@ -29,7 +29,12 @@ public class SpeechToTextService {
     private final RestTemplate restTemplate = new RestTemplate();
 
     public String transcribeAudio(MultipartFile audioFile) throws IOException {
-        File tempFile = File.createTempFile("audio", ".webm");
+        String extension = ".m4a";
+        String originalFilename = audioFile.getOriginalFilename();
+        if (originalFilename != null && originalFilename.contains(".")) {
+            extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+        }
+        File tempFile = File.createTempFile("audio", extension);
 
         try {
             try (FileOutputStream fos = new FileOutputStream(tempFile)) {

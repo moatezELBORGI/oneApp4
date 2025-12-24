@@ -72,11 +72,11 @@ class _InventoryRoomDetailScreenState extends State<InventoryRoomDetailScreen> {
   Future<void> _startRecording() async {
     try {
       final directory = await getTemporaryDirectory();
-      final path = '${directory.path}/recording_${DateTime.now().millisecondsSinceEpoch}.webm';
+      final path = '${directory.path}/recording_${DateTime.now().millisecondsSinceEpoch}.m4a';
 
       await _recorder.startRecorder(
         toFile: path,
-        codec: Codec.opusWebM,
+        codec: Codec.aacMP4,
       );
 
       setState(() {
