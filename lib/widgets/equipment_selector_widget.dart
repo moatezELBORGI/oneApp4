@@ -19,7 +19,7 @@ class SelectedEquipment {
 }
 
 class EquipmentSelectorWidget extends StatefulWidget {
-  final String roomTypeId;
+  final int roomTypeId;
   final Function(List<SelectedEquipment>) onEquipmentsChanged;
   final List<SelectedEquipment>? initialEquipments;
 
@@ -85,12 +85,12 @@ class _EquipmentSelectorWidgetState extends State<EquipmentSelectorWidget> {
     final defaultEquipmentNames = <String>[];
 
     final hasKitchenEquipment = _availableTemplates.any(
-        (t) => t.name.toLowerCase().contains('four') ||
-               t.name.toLowerCase().contains('réfrigérateur'));
+            (t) => t.name.toLowerCase().contains('four') ||
+            t.name.toLowerCase().contains('réfrigérateur'));
 
     final hasBathroomEquipment = _availableTemplates.any(
-        (t) => t.name.toLowerCase().contains('douche') ||
-               t.name.toLowerCase().contains('lavabo'));
+            (t) => t.name.toLowerCase().contains('douche') ||
+            t.name.toLowerCase().contains('lavabo'));
 
     if (hasKitchenEquipment) {
       defaultEquipmentNames.addAll([
@@ -224,8 +224,8 @@ class _EquipmentSelectorWidgetState extends State<EquipmentSelectorWidget> {
                         child: Text(
                           'Sélectionner un équipement',
                           style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                       IconButton(
@@ -242,14 +242,14 @@ class _EquipmentSelectorWidgetState extends State<EquipmentSelectorWidget> {
                       prefixIcon: const Icon(Icons.search),
                       suffixIcon: _searchQuery.isNotEmpty
                           ? IconButton(
-                              icon: const Icon(Icons.clear),
-                              onPressed: () {
-                                setState(() {
-                                  _searchQuery = '';
-                                  _searchController.clear();
-                                });
-                              },
-                            )
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          setState(() {
+                            _searchQuery = '';
+                            _searchController.clear();
+                          });
+                        },
+                      )
                           : null,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -270,46 +270,46 @@ class _EquipmentSelectorWidgetState extends State<EquipmentSelectorWidget> {
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : ListView.builder(
-                      controller: scrollController,
-                      padding: const EdgeInsets.all(16),
-                      itemCount: _filteredTemplates.length,
-                      itemBuilder: (context, index) {
-                        final template = _filteredTemplates[index];
-                        final isAlreadySelected = _selectedEquipments
-                            .any((eq) => eq.template.id == template.id);
+                controller: scrollController,
+                padding: const EdgeInsets.all(16),
+                itemCount: _filteredTemplates.length,
+                itemBuilder: (context, index) {
+                  final template = _filteredTemplates[index];
+                  final isAlreadySelected = _selectedEquipments
+                      .any((eq) => eq.template.id == template.id);
 
-                        return Card(
-                          margin: const EdgeInsets.only(bottom: 8),
-                          child: ListTile(
-                            leading: CircleAvatar(
-                              backgroundColor: Colors.blue.shade50,
-                              child: Icon(
-                                Icons.home_repair_service,
-                                color: Colors.blue.shade700,
-                              ),
-                            ),
-                            title: Text(
-                              template.name,
-                              style: const TextStyle(fontWeight: FontWeight.w600),
-                            ),
-                            subtitle: template.description != null
-                                ? Text(
-                                    template.description!,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  )
-                                : null,
-                            trailing: isAlreadySelected
-                                ? Icon(Icons.check_circle, color: Colors.green.shade600)
-                                : const Icon(Icons.add_circle_outline),
-                            onTap: isAlreadySelected
-                                ? null
-                                : () => _addEquipment(template),
-                            enabled: !isAlreadySelected,
-                          ),
-                        );
-                      },
+                  return Card(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: Colors.blue.shade50,
+                        child: Icon(
+                          Icons.home_repair_service,
+                          color: Colors.blue.shade700,
+                        ),
+                      ),
+                      title: Text(
+                        template.name,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                      subtitle: template.description != null
+                          ? Text(
+                        template.description!,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      )
+                          : null,
+                      trailing: isAlreadySelected
+                          ? Icon(Icons.check_circle, color: Colors.green.shade600)
+                          : const Icon(Icons.add_circle_outline),
+                      onTap: isAlreadySelected
+                          ? null
+                          : () => _addEquipment(template),
+                      enabled: !isAlreadySelected,
                     ),
+                  );
+                },
+              ),
             ),
           ],
         ),
@@ -328,8 +328,8 @@ class _EquipmentSelectorWidgetState extends State<EquipmentSelectorWidget> {
             Text(
               'Équipements',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                fontWeight: FontWeight.bold,
+              ),
             ),
             ElevatedButton.icon(
               onPressed: _showEquipmentPicker,

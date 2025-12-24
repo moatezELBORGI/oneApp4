@@ -44,6 +44,7 @@ public class DataInitializationService implements CommandLineRunner {
         initializeTestData();
         initFaqData();
         initializeRoomTypes();
+        initializeBrusselsLeaseArticles();
 
         log.info("Application data initialization completed");
     }

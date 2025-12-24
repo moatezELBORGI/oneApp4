@@ -27,6 +27,8 @@ public class RoomType {
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+    private String description;
+    private String icon;
 
     @OneToMany(mappedBy = "roomType", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RoomTypeFieldDefinition> fieldDefinitions = new ArrayList<>();

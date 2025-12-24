@@ -4,7 +4,7 @@ import '../../services/apartment_management_service.dart';
 import '../../services/api_service.dart';
 
 class ApartmentDetailsAccordionScreen extends StatefulWidget {
-  final int apartmentId;
+  final String apartmentId;
 
   const ApartmentDetailsAccordionScreen({
     Key? key,

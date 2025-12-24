@@ -34,7 +34,7 @@ class EquipmentTemplateService {
     }
   }
 
-  Future<List<EquipmentTemplateModel>> getTemplatesByRoomType(String roomTypeId) async {
+  Future<List<EquipmentTemplateModel>> getTemplatesByRoomType(int roomTypeId) async {
     try {
       final token = await _getToken();
       final response = await http.get(
@@ -49,10 +49,14 @@ class EquipmentTemplateService {
         final List<dynamic> data = json.decode(utf8.decode(response.bodyBytes));
         return data.map((json) => EquipmentTemplateModel.fromJson(json)).toList();
       } else {
-        throw Exception('Failed to load equipment templates for room type');
+        // Log message clair pour erreur HTTP
+        print('❌ Error: Failed to load equipment templates for room type $roomTypeId. Status code: ${response.statusCode}');
+        throw Exception('Failed to load equipment templates for room type $roomTypeId');
       }
     } catch (e) {
-      throw Exception('Error fetching equipment templates: $e');
+      // Log message clair pour erreur générale
+      print('❌ Exception caught while fetching equipment templates for room type $roomTypeId: $e');
+      throw Exception('Error fetching equipment templates for room type $roomTypeId');
     }
   }
 

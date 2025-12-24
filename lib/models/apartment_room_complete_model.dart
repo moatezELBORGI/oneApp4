@@ -137,14 +137,14 @@ class RoomEquipmentModel {
 }
 
 class RoomImageModel {
-  final int? id;
+  final int id;
   final int? apartmentRoomId;
   final int? equipmentId;
   final String imageUrl;
   final int displayOrder;
 
   RoomImageModel({
-    this.id,
+    required this.id,
     this.apartmentRoomId,
     this.equipmentId,
     required this.imageUrl,

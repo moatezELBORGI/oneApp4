@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/equipment-templates")
+@RequestMapping("/equipment-templates")
 @RequiredArgsConstructor
 @Tag(name = "Equipment Templates", description = "Manage predefined equipment templates for room types")
 public class EquipmentTemplateController {

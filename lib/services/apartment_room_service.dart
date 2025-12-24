@@ -184,7 +184,7 @@ class ApartmentRoomService {
   Future<String> createRoomWithEquipments({
     required String apartmentId,
     required String roomName,
-    required String roomTypeId,
+    required int roomTypeId,
     List<SelectedEquipment>? equipments,
   }) async {
     try {

@@ -64,7 +64,7 @@ class ApartmentCompleteModel {
 
 class ApartmentCustomFieldModel {
   final int? id;
-  final int? apartmentId;
+  final String? apartmentId;
   final String fieldLabel;
   final String fieldValue;
   final int displayOrder;

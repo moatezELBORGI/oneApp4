@@ -68,6 +68,7 @@ public class SecurityConfig {
                                 .requestMatchers("/etat-des-lieux/**").hasAnyRole("RESIDENT", "BUILDING_ADMIN", "GROUP_ADMIN", "SUPER_ADMIN")
                                 .requestMatchers("/api/v1/etat-des-lieux/**").hasAnyRole("RESIDENT", "BUILDING_ADMIN", "GROUP_ADMIN", "SUPER_ADMIN")
 
+                        .requestMatchers("/equipment-templates/**").permitAll()
 
                         // Admin endpoints
                         .requestMatchers("/admin/**").hasAnyRole("BUILDING_ADMIN", "GROUP_ADMIN", "SUPER_ADMIN")
