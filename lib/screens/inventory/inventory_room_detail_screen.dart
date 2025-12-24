@@ -2,8 +2,15 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_sound/flutter_sound.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import '../../models/inventory_model.dart';
 import '../../services/inventory_service.dart';
+import '../../services/storage_service.dart';
+import '../../utils/constants.dart';
 
 class InventoryRoomDetailScreen extends StatefulWidget {
   final String inventoryId;
@@ -25,20 +32,131 @@ class _InventoryRoomDetailScreenState extends State<InventoryRoomDetailScreen> {
   final InventoryService _inventoryService = InventoryService();
   final ImagePicker _picker = ImagePicker();
   final TextEditingController _descriptionController = TextEditingController();
+  final FlutterSoundRecorder _recorder = FlutterSoundRecorder();
+  final StorageService _storageService = StorageService();
+
   List<InventoryRoomPhotoModel> _photos = [];
   bool _isLoading = false;
+  bool _isRecording = false;
+  bool _isTranscribing = false;
+  String? _recordingPath;
 
   @override
   void initState() {
     super.initState();
     _descriptionController.text = widget.roomEntry.description ?? '';
     _photos = widget.roomEntry.photos ?? [];
+    _initRecorder();
   }
 
   @override
   void dispose() {
     _descriptionController.dispose();
+    _recorder.closeRecorder();
     super.dispose();
+  }
+
+  Future<void> _initRecorder() async {
+    final status = await Permission.microphone.request();
+    if (status != PermissionStatus.granted) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Permission microphone requise')),
+        );
+      }
+      return;
+    }
+    await _recorder.openRecorder();
+  }
+
+  Future<void> _startRecording() async {
+    try {
+      final directory = await getTemporaryDirectory();
+      final path = '${directory.path}/recording_${DateTime.now().millisecondsSinceEpoch}.webm';
+
+      await _recorder.startRecorder(
+        toFile: path,
+        codec: Codec.opusWebM,
+      );
+
+      setState(() {
+        _isRecording = true;
+        _recordingPath = path;
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur d\'enregistrement: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _stopRecording() async {
+    try {
+      await _recorder.stopRecorder();
+      setState(() => _isRecording = false);
+
+      if (_recordingPath != null) {
+        await _transcribeAudio(_recordingPath!);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _transcribeAudio(String audioPath) async {
+    setState(() => _isTranscribing = true);
+
+    try {
+      final token = await StorageService.getToken();
+      final uri = Uri.parse('${Constants.baseUrl}/speech-to-text/transcribe');
+
+      var request = http.MultipartRequest('POST', uri);
+      request.headers['Authorization'] = 'Bearer $token';
+      request.files.add(await http.MultipartFile.fromPath('audio', audioPath));
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final transcription = data['transcription'] as String;
+
+        setState(() {
+          if (_descriptionController.text.isNotEmpty) {
+            _descriptionController.text += ' $transcription';
+          } else {
+            _descriptionController.text = transcription;
+          }
+        });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Transcription ajoutée')),
+          );
+        }
+      } else {
+        throw Exception('Erreur de transcription');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur de transcription: $e')),
+        );
+      }
+    } finally {
+      setState(() => _isTranscribing = false);
+      if (_recordingPath != null) {
+        try {
+          await File(_recordingPath!).delete();
+        } catch (_) {}
+      }
+    }
   }
 
   Future<void> _saveDescription() async {
@@ -248,6 +366,54 @@ class _InventoryRoomDetailScreenState extends State<InventoryRoomDetailScreen> {
                         border: OutlineInputBorder(),
                       ),
                     ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _isTranscribing
+                              ? const Center(
+                                  child: Column(
+                                    children: [
+                                      CircularProgressIndicator(),
+                                      SizedBox(height: 8),
+                                      Text(
+                                        'Transcription en cours...',
+                                        style: TextStyle(fontSize: 12),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              : ElevatedButton.icon(
+                                  onPressed: _isRecording ? _stopRecording : _startRecording,
+                                  icon: Icon(_isRecording ? Icons.stop : Icons.mic),
+                                  label: Text(_isRecording ? 'Arrêter l\'enregistrement' : 'Enregistrer un message vocal'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: _isRecording ? Colors.red : Colors.blue,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                  ),
+                                ),
+                        ),
+                      ],
+                    ),
+                    if (_isRecording)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.fiber_manual_record, color: Colors.red, size: 16),
+                            const SizedBox(width: 8),
+                            const Text(
+                              'Enregistrement en cours...',
+                              style: TextStyle(
+                                color: Colors.red,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                   ],
                 ),
               ),

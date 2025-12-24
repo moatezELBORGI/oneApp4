@@ -23,7 +23,8 @@ public class InventoryService {
     private final InventoryRepository inventoryRepository;
     private final InventoryRoomEntryRepository roomEntryRepository;
     private final LeaseContractRepository leaseContractRepository;
-    private final ApartmentRoomLegacyRepository apartmentRoomLegacyRepository;
+    private final ApartmentRoomNewRepository apartmentRoomNewRepository;
+    private final RoomImageRepository roomImageRepository;
     private final InventoryRoomPhotoRepository roomPhotoRepository;
     private final FileService fileService;
 
@@ -48,19 +49,36 @@ public class InventoryService {
 
         inventory = inventoryRepository.save(inventory);
 
-        List<ApartmentRoomLegacy> rooms = apartmentRoomLegacyRepository.findByApartment_IdApartmentOrderByOrderIndex(
+        List<ApartmentRoom> rooms = apartmentRoomNewRepository.findByApartmentIdWithDetails(
                 contract.getApartment().getIdApartment()
         );
 
         int orderIndex = 0;
-        for (ApartmentRoomLegacy room : rooms) {
+        for (ApartmentRoom room : rooms) {
+            String sectionName = room.getRoomName() != null ? room.getRoomName() : room.getRoomType().getName();
+
             InventoryRoomEntry entry = InventoryRoomEntry.builder()
                     .inventory(inventory)
-                    .room(room)
+                    .apartmentRoom(room)
+                    .sectionName(sectionName)
                     .description("")
                     .orderIndex(orderIndex++)
                     .build();
-            roomEntryRepository.save(entry);
+
+            entry = roomEntryRepository.save(entry);
+
+            List<RoomImage> roomImages = room.getImages();
+            if (roomImages != null && !roomImages.isEmpty()) {
+                int photoOrder = 0;
+                for (RoomImage roomImage : roomImages) {
+                    InventoryRoomPhoto photo = InventoryRoomPhoto.builder()
+                            .roomEntry(entry)
+                            .photoUrl(roomImage.getImageUrl())
+                            .orderIndex(photoOrder++)
+                            .build();
+                    roomPhotoRepository.save(photo);
+                }
+            }
         }
 
         return convertToDto(inventory);
@@ -175,8 +193,9 @@ public class InventoryService {
 
     private InventoryRoomEntryDto convertRoomEntryToDto(InventoryRoomEntry entry) {
         String sectionName = entry.getSectionName();
-        if (sectionName == null && entry.getRoom() != null) {
-            sectionName = entry.getRoom().getRoomName();
+        if (sectionName == null && entry.getApartmentRoom() != null) {
+            ApartmentRoom room = entry.getApartmentRoom();
+            sectionName = room.getRoomName() != null ? room.getRoomName() : room.getRoomType().getName();
         }
 
         List<InventoryRoomPhotoDto> photos = roomPhotoRepository.findByRoomEntry_IdOrderByOrderIndex(entry.getId())
@@ -187,7 +206,7 @@ public class InventoryService {
         return InventoryRoomEntryDto.builder()
                 .id(entry.getId().toString())
                 .inventoryId(entry.getInventory().getId().toString())
-                .roomId(entry.getRoom() != null ? entry.getRoom().getId().toString() : null)
+                .roomId(entry.getApartmentRoom() != null ? entry.getApartmentRoom().getId().toString() : null)
                 .sectionName(sectionName)
                 .description(entry.getDescription())
                 .orderIndex(entry.getOrderIndex())

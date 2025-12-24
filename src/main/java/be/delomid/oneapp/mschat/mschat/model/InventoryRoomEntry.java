@@ -16,8 +16,8 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@EqualsAndHashCode(exclude = {"inventory", "room", "photos"})
-@ToString(exclude = {"inventory", "room", "photos"})
+@EqualsAndHashCode(exclude = {"inventory", "apartmentRoom", "photos"})
+@ToString(exclude = {"inventory", "apartmentRoom", "photos"})
 public class InventoryRoomEntry {
 
     @Id
@@ -30,8 +30,8 @@ public class InventoryRoomEntry {
     private Inventory inventory;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "room_id")
-    private ApartmentRoomLegacy room;
+    @JoinColumn(name = "apartment_room_id")
+    private ApartmentRoom apartmentRoom;
 
     @Column(name = "section_name")
     private String sectionName;
