@@ -40,8 +40,11 @@ public class LeaseContractEnhancedService {
     }
 
     public boolean canTerminateContract(UUID contractId) {
-        Optional<Inventory> exitInventory = inventoryRepository.findByContract_IdAndType(contractId, InventoryType.EXIT);
-        return exitInventory.isPresent() && exitInventory.get().getStatus() == InventoryStatus.SIGNED;
+        List<Inventory> exitInventories = inventoryRepository.findByContract_IdAndTypeOrderByCreatedAtDesc(contractId, InventoryType.EXIT);
+        if (exitInventories.isEmpty()) {
+            return false;
+        }
+        return exitInventories.get(0).getStatus() == InventoryStatus.SIGNED;
     }
 
     public List<Object> getNonResidentUsers(String search) {
@@ -78,8 +81,11 @@ public class LeaseContractEnhancedService {
     }
 
     private LeaseContractDto convertToDtoWithInventoryStatus(LeaseContract contract) {
-        Optional<Inventory> entryInventory = inventoryRepository.findByContract_IdAndType(contract.getId(), InventoryType.ENTRY);
-        Optional<Inventory> exitInventory = inventoryRepository.findByContract_IdAndType(contract.getId(), InventoryType.EXIT);
+        List<Inventory> entryInventories = inventoryRepository.findByContract_IdAndTypeOrderByCreatedAtDesc(contract.getId(), InventoryType.ENTRY);
+        Optional<Inventory> entryInventory = entryInventories.isEmpty() ? Optional.empty() : Optional.of(entryInventories.get(0));
+
+        List<Inventory> exitInventories = inventoryRepository.findByContract_IdAndTypeOrderByCreatedAtDesc(contract.getId(), InventoryType.EXIT);
+        Optional<Inventory> exitInventory = exitInventories.isEmpty() ? Optional.empty() : Optional.of(exitInventories.get(0));
 
         ResidentDto ownerDto = ResidentDto.builder()
                 .idUsers(contract.getOwner().getIdUsers())

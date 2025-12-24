@@ -13,4 +13,5 @@ import java.util.UUID;
 public interface InventoryRepository extends JpaRepository<Inventory, UUID> {
     List<Inventory> findByContract_Id(UUID contractId);
     Optional<Inventory> findByContract_IdAndType(UUID contractId, InventoryType type);
+    List<Inventory> findByContract_IdAndTypeOrderByCreatedAtDesc(UUID contractId, InventoryType type);
 }
