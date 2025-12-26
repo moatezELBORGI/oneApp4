@@ -12,6 +12,13 @@ import java.util.List;
 public interface ApartmentRoomNewRepository extends JpaRepository<ApartmentRoom, Long> {
     List<ApartmentRoom> findByApartmentOrderById(Apartment apartment);
 
-    @Query("SELECT ar FROM ApartmentRoom ar LEFT JOIN FETCH ar.roomType LEFT JOIN FETCH ar.fieldValues WHERE ar.apartment.idApartment = :apartmentId")
+    @Query("SELECT DISTINCT ar FROM ApartmentRoom ar " +
+            "LEFT JOIN FETCH ar.roomType " +
+            "LEFT JOIN FETCH ar.fieldValues " +
+            "LEFT JOIN FETCH ar.images " +
+            "LEFT JOIN FETCH ar.equipments e " +
+            "LEFT JOIN FETCH e.images " +
+            "WHERE ar.apartment.idApartment = :apartmentId " +
+            "ORDER BY ar.id")
     List<ApartmentRoom> findByApartmentIdWithDetails(String apartmentId);
 }

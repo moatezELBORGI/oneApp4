@@ -67,9 +67,10 @@ public class InventoryService {
 
             entry = roomEntryRepository.save(entry);
 
+            int photoOrder = 0;
+
             List<RoomImage> roomImages = room.getImages();
             if (roomImages != null && !roomImages.isEmpty()) {
-                int photoOrder = 0;
                 for (RoomImage roomImage : roomImages) {
                     InventoryRoomPhoto photo = InventoryRoomPhoto.builder()
                             .roomEntry(entry)
@@ -77,6 +78,23 @@ public class InventoryService {
                             .orderIndex(photoOrder++)
                             .build();
                     roomPhotoRepository.save(photo);
+                }
+            }
+
+            List<RoomEquipment> equipments = room.getEquipments();
+            if (equipments != null && !equipments.isEmpty()) {
+                for (RoomEquipment equipment : equipments) {
+                    List<RoomImage> equipmentImages = equipment.getImages();
+                    if (equipmentImages != null && !equipmentImages.isEmpty()) {
+                        for (RoomImage equipmentImage : equipmentImages) {
+                            InventoryRoomPhoto photo = InventoryRoomPhoto.builder()
+                                    .roomEntry(entry)
+                                    .photoUrl(equipmentImage.getImageUrl())
+                                    .orderIndex(photoOrder++)
+                                    .build();
+                            roomPhotoRepository.save(photo);
+                        }
+                    }
                 }
             }
         }
