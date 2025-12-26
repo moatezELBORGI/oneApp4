@@ -33,13 +33,13 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await webSocket.connect();
   await webRTC.initialize(webSocket);
-  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
 
   await Firebase.initializeApp(
-  options: DefaultFirebaseOptions.currentPlatform,
-);
-await NotificationService().initFcm();
- FirebaseMessaging.onBackgroundMessage(handleBackgroundMessage);
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  await NotificationService().initFcm();
+  FirebaseMessaging.onBackgroundMessage(handleBackgroundMessage);
   // Initialize services
   await StorageService.init();
   await BuildingContextService().loadBuildingContext();

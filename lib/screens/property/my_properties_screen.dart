@@ -247,29 +247,8 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            OutlinedButton.icon(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ApartmentRoomsScreen(
-                      apartmentId: property.idApartment!,
-                    ),
-                  ),
-                );
-              },
-              icon: const Icon(Icons.meeting_room_rounded, size: 18),
-              label: const Text('Gérer les pièces'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppTheme.primaryColor,
-                side: BorderSide(color: AppTheme.primaryColor),
-                minimumSize: const Size(double.infinity, 44),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            ),
+            const SizedBox(height: 12)
+
           ],
         ),
       ),
