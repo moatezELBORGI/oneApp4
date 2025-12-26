@@ -6,7 +6,7 @@ import '../../services/apartment_management_service.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../claims/create_claim_screen.dart';
+import '../claims/claims_screen.dart';
 
 class MyApartmentWizardScreen extends StatefulWidget {
   final String apartmentId;
@@ -101,11 +101,11 @@ class _MyApartmentWizardScreenState extends State<MyApartmentWizardScreen>
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const CreateClaimScreen(),
+                  builder: (context) => const ClaimsScreen(),
                 ),
               );
             },
-            tooltip: 'Déclarer un sinistre',
+            tooltip: 'Sinistres',
           ),
         ],
       ),
