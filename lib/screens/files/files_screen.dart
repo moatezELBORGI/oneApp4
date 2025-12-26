@@ -745,23 +745,25 @@ class _FilesScreenState extends State<FilesScreen> {
   }
 
   Widget _buildFloatingActionButtons() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        FloatingActionButton(
-          heroTag: "create_folder_fab",
-          onPressed: _showCreateFolderDialog,
-          backgroundColor: AppTheme.primaryColor,
-          child: const Icon(Icons.create_new_folder),
-        ),
-        const SizedBox(height: 16),
-        FloatingActionButton(
-          heroTag: "upload_file_fab",
-          onPressed: _showUploadFileDialog,
-          backgroundColor: AppTheme.accentColor,
-          child: const Icon(Icons.upload_file),
-        ),
-      ],
+    return SafeArea(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          FloatingActionButton(
+            heroTag: "create_folder_fab",
+            onPressed: _showCreateFolderDialog,
+            backgroundColor: AppTheme.primaryColor,
+            child: const Icon(Icons.create_new_folder),
+          ),
+          const SizedBox(height: 16),
+          FloatingActionButton(
+            heroTag: "upload_file_fab",
+            onPressed: _showUploadFileDialog,
+            backgroundColor: AppTheme.accentColor,
+            child: const Icon(Icons.upload_file),
+          ),
+        ],
+      ),
     );
   }
 

@@ -124,10 +124,13 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: false,
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screens,
+      resizeToAvoidBottomInset: true,
+      body: SafeArea(
+        top: false,
+        child: IndexedStack(
+          index: _currentIndex,
+          children: _screens,
+        ),
       ),
       bottomNavigationBar: Consumer<NotificationProvider>(
         builder: (context, notificationProvider, child) {

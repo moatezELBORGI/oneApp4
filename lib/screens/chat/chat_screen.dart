@@ -393,12 +393,13 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
       minChildSize: 0.5,
       maxChildSize: 0.95,
       builder: (context, scrollController) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          child: Column(
+        return SafeArea(
+          child: Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            child: Column(
             children: [
               // Handle
               Container(
@@ -496,6 +497,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
                 ),
               ),
             ],
+            ),
           ),
         );
       },
@@ -1187,50 +1189,52 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(2),
+      builder: (context) => SafeArea(
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              widget.channel.name,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            if (widget.channel.description != null)
+              const SizedBox(height: 20),
               Text(
-                'Sujet: ${widget.channel.description}',
+                widget.channel.name,
                 style: const TextStyle(
-                  fontSize: 16,
-                  color: AppTheme.textSecondary,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                const Icon(Icons.people, size: 16, color: AppTheme.textSecondary),
-                const SizedBox(width: 8),
+              const SizedBox(height: 8),
+              if (widget.channel.description != null)
                 Text(
-                  '${widget.channel.memberCount} membres',
-                  style: const TextStyle(color: AppTheme.textSecondary),
+                  'Sujet: ${widget.channel.description}',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: AppTheme.textSecondary,
+                  ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 20),
-          ],
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  const Icon(Icons.people, size: 16, color: AppTheme.textSecondary),
+                  const SizedBox(width: 8),
+                  Text(
+                    '${widget.channel.memberCount} membres',
+                    style: const TextStyle(color: AppTheme.textSecondary),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
         ),
       ),
     );
@@ -1620,24 +1624,26 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
   }
 
   Widget _buildAttachmentBottomSheet() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _buildBottomSheetHandle(),
-          const SizedBox(height: 20),
-          const Text(
-            'Envoyer un fichier',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
+    return SafeArea(
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildBottomSheetHandle(),
+            const SizedBox(height: 20),
+            const Text(
+              'Envoyer un fichier',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
             ),
-          ),
-          const SizedBox(height: 20),
-          _buildAttachmentOptionsRow(),
-          const SizedBox(height: 20),
-        ],
+            const SizedBox(height: 20),
+            _buildAttachmentOptionsRow(),
+            const SizedBox(height: 20),
+          ],
+        ),
       ),
     );
   }

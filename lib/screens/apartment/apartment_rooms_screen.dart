@@ -126,9 +126,11 @@ class _ApartmentRoomsScreenState extends State<ApartmentRoomsScreen> {
         title: const Text('Pièces de l\'Appartement'),
         elevation: 0,
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showAddRoomDialog,
-        child: const Icon(Icons.add),
+      floatingActionButton: SafeArea(
+        child: FloatingActionButton(
+          onPressed: _showAddRoomDialog,
+          child: const Icon(Icons.add),
+        ),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())

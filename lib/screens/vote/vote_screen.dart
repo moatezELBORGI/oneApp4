@@ -143,18 +143,20 @@ class _VoteScreenState extends State<VoteScreen> {
         },
       ),
       floatingActionButton: isAdmin
-          ? FloatingActionButton(
-        heroTag: "vote_fab",
-        onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => CreateVoteScreen(channel: widget.channel),
-            ),
-          );
-        },
-        backgroundColor: AppTheme.primaryColor,
-        child: const Icon(Icons.add),
-      )
+          ? SafeArea(
+              child: FloatingActionButton(
+                heroTag: "vote_fab",
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => CreateVoteScreen(channel: widget.channel),
+                    ),
+                  );
+                },
+                backgroundColor: AppTheme.primaryColor,
+                child: const Icon(Icons.add),
+              ),
+            )
           : null,
     );
   }
