@@ -26,6 +26,7 @@ public class ApartmentManagementService {
     private final RoomEquipmentRepository roomEquipmentRepository;
     private final RoomImageRepository roomImageRepository;
     private final ApartmentCustomFieldRepository apartmentCustomFieldRepository;
+    private final ApartmentGeneralInfoRepository apartmentGeneralInfoRepository;
 
     @Transactional
     public ApartmentCompleteDto createApartmentWithRooms(CreateApartmentWithRoomsRequest request) {
@@ -47,6 +48,14 @@ apartment.setIdApartment(apartmentId);
         apartment.setOwner(resident);
         apartment.setBuilding(building);
         apartment = apartmentRepository.save(apartment);
+
+        if (request.getSurface() != null || request.getFloor() != null) {
+            ApartmentGeneralInfo generalInfo = new ApartmentGeneralInfo();
+            generalInfo.setApartmentId(apartmentId);
+            generalInfo.setSurface(request.getSurface());
+            generalInfo.setEtage(request.getFloor());
+            apartmentGeneralInfoRepository.save(generalInfo);
+        }
 
         List<ApartmentRoom> savedRooms = new ArrayList<>();
         for (CreateRoomRequest roomRequest : request.getRooms()) {

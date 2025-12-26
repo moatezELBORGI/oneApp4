@@ -15,7 +15,7 @@ import '../../widgets/building_selector_dropdown.dart';
 import '../chat/chat_screen.dart';
 import '../notifications/notifications_screen.dart';
 import '../admin/admin_building_screen.dart';
-import '../apartment/my_apartment_screen.dart';
+import '../apartment/my_apartment_wizard_screen.dart';
 import '../claims/claims_screen.dart';
 import '../lease/lease_contracts_screen.dart';
 import '../inventory/inventories_screen.dart';
@@ -405,13 +405,13 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               if (authProvider.user?.apartmentId != null)
                 QuickAccessCard(
                   title: 'Mon Appartement',
-                  subtitle: 'Gérer les détails',
+                  subtitle: 'Voir les détails',
                   icon: Icons.home_rounded,
                   color: Colors.green,
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (context) => MyApartmentScreen(
+                        builder: (context) => MyApartmentWizardScreen(
                           apartmentId: authProvider.user!.apartmentId!,
                         ),
                       ),
@@ -458,7 +458,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               ),
               QuickAccessCard(
                 title: 'Sinistres',
-                subtitle: 'Déclarer un sinistre',
+                subtitle: 'Consulter les sinistres',
                 icon: Icons.warning_amber_rounded,
                 color: Colors.orange,
                 onTap: () {

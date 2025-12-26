@@ -49,6 +49,8 @@ class _CreateApartmentWizardScreenState
   List<RoomTypeModel> _roomTypes = [];
   List<CreateRoomData> _rooms = [];
 
+  final _surfaceController = TextEditingController();
+
   List<CustomFieldData> _customFields = [
     CustomFieldData(
       label: 'Consommation énergie',
@@ -196,6 +198,7 @@ class _CreateApartmentWizardScreenState
         'propertyName': _propertyNameController.text,
         'number': _numberController.text,
         'floor': int.parse(_floorController.text),
+        'surface': _surfaceController.text.isNotEmpty ? double.tryParse(_surfaceController.text) : null,
         'ownerId': _selectedOwnerId,
         'buildingId': widget.buildingId,
         'rooms': roomsData,
@@ -874,6 +877,54 @@ class _CreateApartmentWizardScreenState
           ),
         ),
         const SizedBox(height: 20),
+        Card(
+          elevation: 3,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Theme.of(context).primaryColor.withOpacity(0.1),
+                            Theme.of(context).primaryColor.withOpacity(0.2),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(Icons.square_foot, size: 22, color: Theme.of(context).primaryColor),
+                    ),
+                    const SizedBox(width: 14),
+                    const Expanded(
+                      child: Text(
+                        'Surface totale',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                TextField(
+                  controller: _surfaceController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: 'Surface (m²)',
+                    suffixText: 'm²',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    filled: true,
+                    fillColor: Colors.grey[50],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
         ..._customFields.asMap().entries.map((entry) {
           final index = entry.key;
           final field = entry.value;
@@ -1210,6 +1261,7 @@ class _CreateApartmentWizardScreenState
     _propertyNameController.dispose();
     _numberController.dispose();
     _floorController.dispose();
+    _surfaceController.dispose();
     _animationController.dispose();
     super.dispose();
   }

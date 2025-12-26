@@ -166,18 +166,16 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen> {
               ],
             ),
             const SizedBox(height: 16),
-            _buildInfoRow(
-              Icons.square_foot,
-              '${property.livingAreaSurface} m²',
-            ),
-            _buildInfoRow(
-              Icons.bed_outlined,
-              '${property.numberOfBedrooms} chambres',
-            ),
-            _buildInfoRow(
-              Icons.meeting_room_outlined,
-              '${property.numberOfRooms} pièces',
-            ),
+            if (property.livingAreaSurface != null)
+              _buildInfoRow(
+                Icons.square_foot,
+                '${property.livingAreaSurface} m²',
+              ),
+            if (property.numberOfRooms != null && property.numberOfRooms! > 0)
+              _buildInfoRow(
+                Icons.meeting_room_outlined,
+                '${property.numberOfRooms} pièce${property.numberOfRooms! > 1 ? 's' : ''}',
+              ),
             if (hasTenant) ...[
               const Divider(height: 24),
               _buildInfoRow(
