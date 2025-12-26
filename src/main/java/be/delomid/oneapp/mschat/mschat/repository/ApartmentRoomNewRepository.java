@@ -16,9 +16,13 @@ public interface ApartmentRoomNewRepository extends JpaRepository<ApartmentRoom,
             "LEFT JOIN FETCH ar.roomType " +
             "LEFT JOIN FETCH ar.fieldValues " +
             "LEFT JOIN FETCH ar.images " +
-            "LEFT JOIN FETCH ar.equipments e " +
-            "LEFT JOIN FETCH e.images " +
+            "LEFT JOIN FETCH ar.equipments " +
             "WHERE ar.apartment.idApartment = :apartmentId " +
             "ORDER BY ar.id")
     List<ApartmentRoom> findByApartmentIdWithDetails(String apartmentId);
+
+    @Query("SELECT DISTINCT re FROM RoomEquipment re " +
+            "LEFT JOIN FETCH re.images " +
+            "WHERE re.apartmentRoom.id IN :roomIds")
+    List<RoomEquipment> findEquipmentImagesForRooms(List<Long> roomIds);
 }

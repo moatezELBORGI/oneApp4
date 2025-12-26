@@ -53,6 +53,11 @@ public class InventoryService {
                 contract.getApartment().getIdApartment()
         );
 
+        if (!rooms.isEmpty()) {
+            List<Long> roomIds = rooms.stream().map(ApartmentRoom::getId).toList();
+            apartmentRoomNewRepository.findEquipmentImagesForRooms(roomIds);
+        }
+
         int orderIndex = 0;
         for (ApartmentRoom room : rooms) {
             String sectionName = room.getRoomName() != null ? room.getRoomName() : room.getRoomType().getName();
