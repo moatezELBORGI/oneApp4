@@ -55,6 +55,8 @@ public class InventoryService {
 
         if (!rooms.isEmpty()) {
             List<Long> roomIds = rooms.stream().map(ApartmentRoom::getId).toList();
+            apartmentRoomNewRepository.findFieldValuesForRooms(roomIds);
+            apartmentRoomNewRepository.findEquipmentsForRooms(roomIds);
             apartmentRoomNewRepository.findEquipmentImagesForRooms(roomIds);
         }
 
