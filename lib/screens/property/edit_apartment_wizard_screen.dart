@@ -749,11 +749,16 @@ class _EditApartmentWizardScreenState extends State<EditApartmentWizardScreen>
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          CustomTextField(
-                            label: 'Nom personnalisé (optionnel)',
-                            initialValue: room.customName,
-                            onChanged: (value) {
-                              room.customName = value.isEmpty ? null : value;
+                          Builder(
+                            builder: (context) {
+                              final controller = TextEditingController(text: room.customName ?? '');
+                              controller.addListener(() {
+                                room.customName = controller.text.isEmpty ? null : controller.text;
+                              });
+                              return CustomTextField(
+                                label: 'Nom personnalisé (optionnel)',
+                                controller: controller,
+                              );
                             },
                           ),
                           const SizedBox(height: 20),
@@ -851,21 +856,27 @@ class _EditApartmentWizardScreenState extends State<EditApartmentWizardScreen>
 
   Widget _buildFieldInput(EditRoomData room, RoomTypeFieldDefinitionModel fieldDef) {
     if (fieldDef.fieldType == 'TEXT') {
+      final controller = TextEditingController(
+        text: room.fieldValues[fieldDef.id]?.toString() ?? '',
+      );
+      controller.addListener(() {
+        room.fieldValues[fieldDef.id] = controller.text;
+      });
       return CustomTextField(
         label: fieldDef.fieldLabel,
-        initialValue: room.fieldValues[fieldDef.id]?.toString() ?? '',
-        onChanged: (value) {
-          room.fieldValues[fieldDef.id] = value;
-        },
+        controller: controller,
       );
     } else if (fieldDef.fieldType == 'NUMBER') {
+      final controller = TextEditingController(
+        text: room.fieldValues[fieldDef.id]?.toString() ?? '',
+      );
+      controller.addListener(() {
+        room.fieldValues[fieldDef.id] = double.tryParse(controller.text);
+      });
       return CustomTextField(
         label: fieldDef.fieldLabel,
-        initialValue: room.fieldValues[fieldDef.id]?.toString() ?? '',
+        controller: controller,
         keyboardType: TextInputType.number,
-        onChanged: (value) {
-          room.fieldValues[fieldDef.id] = double.tryParse(value);
-        },
       );
     } else if (fieldDef.fieldType == 'BOOLEAN') {
       return CheckboxListTile(
@@ -924,6 +935,10 @@ class _EditApartmentWizardScreenState extends State<EditApartmentWizardScreen>
               const SizedBox(height: 24),
               ..._customFields.map((field) {
                 final index = _customFields.indexOf(field);
+                final controller = TextEditingController(text: field.value);
+                controller.addListener(() {
+                  field.value = controller.text;
+                });
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 16),
                   child: Row(
@@ -941,10 +956,7 @@ class _EditApartmentWizardScreenState extends State<EditApartmentWizardScreen>
                       Expanded(
                         child: CustomTextField(
                           label: field.label,
-                          initialValue: field.value,
-                          onChanged: (value) {
-                            field.value = value;
-                          },
+                          controller: controller,
                         ),
                       ),
                       if (!field.isSystemField)
