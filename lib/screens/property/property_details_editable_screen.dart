@@ -107,6 +107,17 @@ class _PropertyDetailsEditableScreenState
         builder: (context) => const Center(child: CircularProgressIndicator()),
       );
 
+      final basicInfoData = {
+        'propertyName': _propertyNameController.text,
+        'number': _numberController.text,
+        'floor': int.tryParse(_floorController.text),
+      };
+
+      await _managementService.updateBasicInfo(
+        widget.apartmentId,
+        basicInfoData,
+      );
+
       await _loadApartmentData();
 
       Navigator.pop(context);

@@ -243,6 +243,38 @@ apartment.setIdApartment(apartmentId);
         return getApartmentComplete(apartmentId);
     }
 
+    @Transactional
+    public ApartmentCompleteDto updateBasicInfo(String apartmentId, UpdateApartmentBasicInfoRequest request) {
+        Apartment apartment = apartmentRepository.findById(apartmentId)
+                .orElseThrow(() -> new RuntimeException("Apartment not found"));
+
+        if (request.getPropertyName() != null) {
+            apartment.setApartmentLabel(request.getPropertyName());
+        }
+        if (request.getNumber() != null) {
+            apartment.setApartmentNumber(request.getNumber());
+        }
+        if (request.getFloor() != null) {
+            apartment.setApartmentFloor(request.getFloor());
+        }
+        apartmentRepository.save(apartment);
+
+        if (request.getSurface() != null || request.getFloor() != null) {
+            ApartmentGeneralInfo generalInfo = apartmentGeneralInfoRepository.findById(apartmentId)
+                    .orElse(new ApartmentGeneralInfo());
+            generalInfo.setApartmentId(apartmentId);
+            if (request.getSurface() != null) {
+                generalInfo.setSurface(request.getSurface());
+            }
+            if (request.getFloor() != null) {
+                generalInfo.setEtage(request.getFloor());
+            }
+            apartmentGeneralInfoRepository.save(generalInfo);
+        }
+
+        return getApartmentComplete(apartmentId);
+    }
+
     private RoomTypeDto convertToDto(RoomType roomType) {
         RoomTypeDto dto = new RoomTypeDto();
         dto.setId(roomType.getId());

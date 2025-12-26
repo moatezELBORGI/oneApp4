@@ -53,6 +53,15 @@ public class ApartmentManagementController {
         return ResponseEntity.ok(result);
     }
 
+    @PutMapping("/apartments/{apartmentId}/basic-info")
+    @Operation(summary = "Update apartment basic information")
+    public ResponseEntity<ApartmentCompleteDto> updateBasicInfo(
+            @PathVariable String apartmentId,
+            @RequestBody UpdateApartmentBasicInfoRequest request) {
+        ApartmentCompleteDto result = apartmentManagementService.updateBasicInfo(apartmentId, request);
+        return ResponseEntity.ok(result);
+    }
+
     @GetMapping("/room-types")
     @Operation(summary = "Get all system room types")
     public ResponseEntity<List<RoomTypeDto>> getSystemRoomTypes() {

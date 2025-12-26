@@ -159,4 +159,31 @@ class ApartmentManagementService {
       throw Exception('Failed to update custom fields: $e');
     }
   }
+
+  Future<ApartmentCompleteModel> updateBasicInfo(
+      String apartmentId,
+      Map<String, dynamic> basicInfo,
+      ) async {
+    try {
+      final token = await _getToken();
+
+      final response = await http.put(
+        Uri.parse('${Constants.baseUrl}/apartment-management/apartments/$apartmentId/basic-info'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: json.encode(basicInfo),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(utf8.decode(response.bodyBytes));
+        return ApartmentCompleteModel.fromJson(data);
+      } else {
+        throw Exception('Failed to update basic info: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Failed to update basic info: $e');
+    }
+  }
 }
