@@ -101,44 +101,12 @@ public class LeaseContractService {
 
     @Transactional
     public LeaseContractDto signContractByOwner(UUID contractId, String signatureData) {
-        LeaseContract contract = leaseContractRepository.findById(contractId)
-                .orElseThrow(() -> new RuntimeException("Contract not found"));
-
-        contract.setOwnerSignatureData(signatureData);
-        contract.setOwnerSignedAt(LocalDateTime.now());
-
-        if (contract.getTenantSignedAt() != null) {
-            contract.setStatus(LeaseContractStatus.SIGNED);
-            Apartment apartment = contract.getApartment();
-            apartment.setResident(contract.getTenant());
-            apartmentRepository.save(apartment);
-        } else {
-            contract.setStatus(LeaseContractStatus.PENDING_SIGNATURE);
-        }
-
-        contract = leaseContractRepository.save(contract);
-        return convertToDto(contract);
+        throw new RuntimeException("Direct contract signature is not allowed. Please complete and sign the entry inventory (état des lieux d'entrée) first. The contract will be automatically signed once the entry inventory is completed.");
     }
 
     @Transactional
     public LeaseContractDto signContractByTenant(UUID contractId, String signatureData) {
-        LeaseContract contract = leaseContractRepository.findById(contractId)
-                .orElseThrow(() -> new RuntimeException("Contract not found"));
-
-        contract.setTenantSignatureData(signatureData);
-        contract.setTenantSignedAt(LocalDateTime.now());
-
-        if (contract.getOwnerSignedAt() != null) {
-            contract.setStatus(LeaseContractStatus.SIGNED);
-            Apartment apartment = contract.getApartment();
-            apartment.setResident(contract.getTenant());
-            apartmentRepository.save(apartment);
-        } else {
-            contract.setStatus(LeaseContractStatus.PENDING_SIGNATURE);
-        }
-
-        contract = leaseContractRepository.save(contract);
-        return convertToDto(contract);
+        throw new RuntimeException("Direct contract signature is not allowed. Please complete and sign the entry inventory (état des lieux d'entrée) first. The contract will be automatically signed once the entry inventory is completed.");
     }
 
     @Transactional

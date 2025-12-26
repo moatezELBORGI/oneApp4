@@ -18,8 +18,8 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@EqualsAndHashCode(exclude = {"apartment", "owner", "tenant", "customSections", "indexations", "inventories"})
-@ToString(exclude = {"apartment", "owner", "tenant", "customSections", "indexations", "inventories"})
+@EqualsAndHashCode(exclude = {"apartment", "owner", "tenant", "customSections", "indexations", "inventories", "entryInventory"})
+@ToString(exclude = {"apartment", "owner", "tenant", "customSections", "indexations", "inventories", "entryInventory"})
 public class LeaseContract {
 
     @Id
@@ -91,6 +91,10 @@ public class LeaseContract {
     @OneToMany(mappedBy = "contract", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<Inventory> inventories = new ArrayList<>();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "entry_inventory_id")
+    private Inventory entryInventory;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

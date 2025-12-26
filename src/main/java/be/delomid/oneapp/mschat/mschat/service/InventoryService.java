@@ -27,6 +27,8 @@ public class InventoryService {
     private final RoomImageRepository roomImageRepository;
     private final InventoryRoomPhotoRepository roomPhotoRepository;
     private final FileService fileService;
+    private final ResidentBuildingRepository residentBuildingRepository;
+    private final ApartmentRepository apartmentRepository;
 
     @Transactional
     public InventoryDto createInventory(CreateInventoryRequest request) {
@@ -156,6 +158,7 @@ public class InventoryService {
 
         if (inventory.getTenantSignedAt() != null) {
             inventory.setStatus(InventoryStatus.SIGNED);
+            copySignaturesToContractIfEntry(inventory);
         } else {
             inventory.setStatus(InventoryStatus.PENDING_SIGNATURE);
         }
@@ -174,12 +177,62 @@ public class InventoryService {
 
         if (inventory.getOwnerSignedAt() != null) {
             inventory.setStatus(InventoryStatus.SIGNED);
+            copySignaturesToContractIfEntry(inventory);
         } else {
             inventory.setStatus(InventoryStatus.PENDING_SIGNATURE);
         }
 
         inventory = inventoryRepository.save(inventory);
         return convertToDto(inventory);
+    }
+
+    private void copySignaturesToContractIfEntry(Inventory inventory) {
+        if (inventory.getType() == InventoryType.ENTRY) {
+            LeaseContract contract = inventory.getContract();
+            contract.setEntryInventory(inventory);
+            contract.setOwnerSignatureData(inventory.getOwnerSignatureData());
+            contract.setTenantSignatureData(inventory.getTenantSignatureData());
+            contract.setOwnerSignedAt(inventory.getOwnerSignedAt());
+            contract.setTenantSignedAt(inventory.getTenantSignedAt());
+            contract.setStatus(LeaseContractStatus.SIGNED);
+            leaseContractRepository.save(contract);
+            log.info("Copied signatures from entry inventory {} to contract {}", inventory.getId(), contract.getId());
+
+            Apartment apartment = contract.getApartment();
+            Resident tenant = contract.getTenant();
+            Building building = apartment.getBuilding();
+
+            apartment.setResident(tenant);
+            apartmentRepository.save(apartment);
+            log.info("Updated apartment {} with resident {}", apartment.getIdApartment(), tenant.getIdUsers());
+
+            boolean isOwnerOccupant = contract.getOwner().getIdUsers().equals(tenant.getIdUsers());
+            if (!isOwnerOccupant) {
+                ResidentBuilding existingResidentBuilding = residentBuildingRepository
+                        .findByResidentIdAndBuildingId(tenant.getIdUsers(), building.getBuildingId())
+                        .orElse(null);
+
+                if (existingResidentBuilding == null) {
+                    ResidentBuilding residentBuilding = ResidentBuilding.builder()
+                            .resident(tenant)
+                            .building(building)
+                            .apartment(apartment)
+                            .roleInBuilding(UserRole.RESIDENT)
+                            .isActive(true)
+                            .build();
+
+                    residentBuildingRepository.save(residentBuilding);
+                    log.info("Created resident_building entry for tenant {} in building {}", tenant.getIdUsers(), building.getBuildingId());
+                } else {
+                    existingResidentBuilding.setApartment(apartment);
+                    existingResidentBuilding.setIsActive(true);
+                    residentBuildingRepository.save(existingResidentBuilding);
+                    log.info("Updated existing resident_building entry for tenant {} in building {}", tenant.getIdUsers(), building.getBuildingId());
+                }
+            } else {
+                log.info("Tenant is owner-occupant, skipping resident_building creation");
+            }
+        }
     }
 
     private InventoryDto convertToDto(Inventory inventory) {
