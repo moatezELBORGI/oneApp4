@@ -41,6 +41,8 @@ class RoomTypeFieldDefinitionModel {
   final bool isRequired;
   final int displayOrder;
 
+  String get fieldLabel => fieldName;
+
   RoomTypeFieldDefinitionModel({
     required this.id,
     required this.roomTypeId,

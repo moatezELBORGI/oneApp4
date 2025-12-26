@@ -8,7 +8,7 @@ import '../apartment/apartment_rooms_screen.dart';
 import '../lease/lease_contracts_screen.dart';
 import '../lease/contract_history_screen.dart';
 import '../inventory/inventories_screen.dart';
-import 'property_details_editable_screen.dart';
+import 'edit_apartment_wizard_screen.dart';
 
 class MyPropertiesScreen extends StatefulWidget {
   const MyPropertiesScreen({Key? key}) : super(key: key);
@@ -188,19 +188,28 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen> {
               children: [
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => PropertyDetailsEditableScreen(
-                            apartmentId: property.idApartment ?? '',
-                            apartmentLabel: property.apartmentLabel ?? 'Appartement ${property.apartmentNumber}',
+                    onPressed: () async {
+                      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                      final buildingId = authProvider.user?.buildingId;
+
+                      if (buildingId != null) {
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => EditApartmentWizardScreen(
+                              apartmentId: property.idApartment ?? '',
+                              buildingId: buildingId,
+                            ),
                           ),
-                        ),
-                      );
+                        );
+
+                        if (result == true) {
+                          _loadProperties();
+                        }
+                      }
                     },
-                    icon: const Icon(Icons.visibility, size: 18),
-                    label: const Text('Détails'),
+                    icon: const Icon(Icons.edit, size: 18),
+                    label: const Text('Modifier'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.primaryColor,
                       foregroundColor: Colors.white,
