@@ -514,7 +514,7 @@ public class PdfInventoryGenerationService {
             float paragraphWidth = pageWidth - 2 * MARGIN;
 
             String roomName = entry.getSectionName() != null ? entry.getSectionName() :
-                    (entry.getRoom() != null ? entry.getRoom().getRoomName() : "Section");
+                    (entry.getApartmentRoom() != null ? entry.getApartmentRoom().getRoomName() : "Section");
 
             ctx.yPosition = addCenteredBlueTitle(ctx.stream, roomName.toUpperCase(), ctx.yPosition, pageWidth);
 

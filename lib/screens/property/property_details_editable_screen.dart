@@ -26,7 +26,7 @@ class PropertyDetailsEditableScreen extends StatefulWidget {
 class _PropertyDetailsEditableScreenState
     extends State<PropertyDetailsEditableScreen> {
   final ApartmentManagementService _managementService =
-      ApartmentManagementService();
+  ApartmentManagementService();
   final ApartmentRoomService _roomService = ApartmentRoomService();
   final ImagePicker _picker = ImagePicker();
 
@@ -64,7 +64,7 @@ class _PropertyDetailsEditableScreenState
     setState(() => _isLoading = true);
     try {
       final apartment =
-          await _managementService.getApartment(widget.apartmentId);
+      await _managementService.getApartment(widget.apartmentId);
 
       _propertyNameController.text = apartment.propertyName ?? '';
       _numberController.text = apartment.number;
@@ -149,13 +149,13 @@ class _PropertyDetailsEditableScreenState
           .asMap()
           .entries
           .map((entry) => {
-                'id': entry.value['id']!.text.isNotEmpty
-                    ? int.parse(entry.value['id']!.text)
-                    : null,
-                'fieldLabel': entry.value['label']!.text,
-                'fieldValue': entry.value['value']!.text,
-                'displayOrder': entry.key,
-              })
+        'id': entry.value['id']!.text.isNotEmpty
+            ? int.parse(entry.value['id']!.text)
+            : null,
+        'fieldLabel': entry.value['label']!.text,
+        'fieldValue': entry.value['value']!.text,
+        'displayOrder': entry.key,
+      })
           .toList();
 
       await _managementService.updateCustomFields(
@@ -297,7 +297,7 @@ class _PropertyDetailsEditableScreenState
       builder: (context) => AlertDialog(
         title: const Text('Supprimer le champ'),
         content:
-            const Text('Êtes-vous sûr de vouloir supprimer ce champ personnalisé?'),
+        const Text('Êtes-vous sûr de vouloir supprimer ce champ personnalisé?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -332,21 +332,21 @@ class _PropertyDetailsEditableScreenState
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _apartment == null
-              ? const Center(child: Text('Aucune donnée disponible'))
-              : RefreshIndicator(
-                  onRefresh: _loadApartmentData,
-                  child: SingleChildScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    child: Column(
-                      children: [
-                        _buildBasicInfoAccordion(),
-                        if (_apartment!.rooms.isNotEmpty)
-                          _buildRoomsAccordion(),
-                        _buildCustomFieldsAccordion(),
-                      ],
-                    ),
-                  ),
-                ),
+          ? const Center(child: Text('Aucune donnée disponible'))
+          : RefreshIndicator(
+        onRefresh: _loadApartmentData,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            children: [
+              _buildBasicInfoAccordion(),
+              if (_apartment!.rooms.isNotEmpty)
+                _buildRoomsAccordion(),
+              _buildCustomFieldsAccordion(),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -555,16 +555,16 @@ class _PropertyDetailsEditableScreenState
                                         borderRadius: BorderRadius.circular(8),
                                         child: CachedNetworkImage(
                                           imageUrl:
-                                              equipment.images[index].imageUrl,
+                                          equipment.images[index].imageUrl,
                                           width: 80,
                                           height: 80,
                                           fit: BoxFit.cover,
                                           placeholder: (context, url) =>
-                                              const Center(
-                                                  child:
-                                                      CircularProgressIndicator()),
+                                          const Center(
+                                              child:
+                                              CircularProgressIndicator()),
                                           errorWidget: (context, url, error) =>
-                                              const Icon(Icons.error),
+                                          const Icon(Icons.error),
                                         ),
                                       ),
                                     );
@@ -609,7 +609,7 @@ class _PropertyDetailsEditableScreenState
                                   placeholder: (context, url) => const Center(
                                       child: CircularProgressIndicator()),
                                   errorWidget: (context, url, error) =>
-                                      const Icon(Icons.error),
+                                  const Icon(Icons.error),
                                 ),
                               ),
                               Positioned(

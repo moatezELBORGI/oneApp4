@@ -2,6 +2,7 @@ package be.delomid.oneapp.mschat.mschat.repository;
 
 import be.delomid.oneapp.mschat.mschat.model.Apartment;
 import be.delomid.oneapp.mschat.mschat.model.ApartmentRoom;
+import be.delomid.oneapp.mschat.mschat.model.RoomEquipment;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;

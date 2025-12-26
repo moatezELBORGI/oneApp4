@@ -66,7 +66,7 @@ class _MyApartmentWizardScreenState extends State<MyApartmentWizardScreen>
         _floorController.text = apartment.floor.toString();
 
         final surfaceField = apartment.customFields.firstWhere(
-          (field) => field.fieldLabel == 'Surface totale',
+              (field) => field.fieldLabel == 'Surface totale',
           orElse: () => ApartmentCustomFieldModel(
             fieldLabel: 'Surface totale',
             fieldValue: '',
@@ -111,41 +111,41 @@ class _MyApartmentWizardScreenState extends State<MyApartmentWizardScreen>
       ),
       body: _isLoading
           ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      Theme.of(context).primaryColor,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    'Chargement...',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey[700],
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(
+                Theme.of(context).primaryColor,
               ),
-            )
-          : Column(
-              children: [
-                _buildProgressIndicator(),
-                Expanded(
-                  child: FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: SlideTransition(
-                      position: _slideAnimation,
-                      child: _buildCurrentStepContent(),
-                    ),
-                  ),
-                ),
-                _buildNavigationButtons(),
-              ],
             ),
+            const SizedBox(height: 24),
+            Text(
+              'Chargement...',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey[700],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      )
+          : Column(
+        children: [
+          _buildProgressIndicator(),
+          Expanded(
+            child: FadeTransition(
+              opacity: _fadeAnimation,
+              child: SlideTransition(
+                position: _slideAnimation,
+                child: _buildCurrentStepContent(),
+              ),
+            ),
+          ),
+          _buildNavigationButtons(),
+        ],
+      ),
     );
   }
 
@@ -189,17 +189,17 @@ class _MyApartmentWizardScreenState extends State<MyApartmentWizardScreen>
             color: isCompleted
                 ? Colors.green
                 : isActive
-                    ? Theme.of(context).primaryColor
-                    : Colors.grey[300],
+                ? Theme.of(context).primaryColor
+                : Colors.grey[300],
             boxShadow: isActive
                 ? [
-                    BoxShadow(
-                      color: (isCompleted ? Colors.green : Theme.of(context).primaryColor)
-                          .withOpacity(0.3),
-                      blurRadius: 12,
-                      spreadRadius: 2,
-                    )
-                  ]
+              BoxShadow(
+                color: (isCompleted ? Colors.green : Theme.of(context).primaryColor)
+                    .withOpacity(0.3),
+                blurRadius: 12,
+                spreadRadius: 2,
+              )
+            ]
                 : [],
           ),
           child: Icon(
@@ -542,7 +542,7 @@ class _MyApartmentWizardScreenState extends State<MyApartmentWizardScreen>
                                   placeholder: (context, url) => const Center(
                                       child: CircularProgressIndicator()),
                                   errorWidget: (context, url, error) =>
-                                      const Icon(Icons.error),
+                                  const Icon(Icons.error),
                                 ),
                               ),
                             );
@@ -582,9 +582,9 @@ class _MyApartmentWizardScreenState extends State<MyApartmentWizardScreen>
                       height: 120,
                       fit: BoxFit.cover,
                       placeholder: (context, url) =>
-                          const Center(child: CircularProgressIndicator()),
+                      const Center(child: CircularProgressIndicator()),
                       errorWidget: (context, url, error) =>
-                          const Icon(Icons.error),
+                      const Icon(Icons.error),
                     ),
                   ),
                 );
@@ -598,7 +598,7 @@ class _MyApartmentWizardScreenState extends State<MyApartmentWizardScreen>
 
   Widget _buildCustomFieldsStep() {
     final surfaceField = _apartment?.customFields.firstWhere(
-      (field) => field.fieldLabel == 'Surface totale',
+          (field) => field.fieldLabel == 'Surface totale',
       orElse: () => ApartmentCustomFieldModel(
         fieldLabel: 'Surface totale',
         fieldValue: '',
@@ -809,26 +809,26 @@ class _MyApartmentWizardScreenState extends State<MyApartmentWizardScreen>
               flex: _currentStep == 0 ? 1 : 1,
               child: _currentStep < 2
                   ? ElevatedButton.icon(
-                      onPressed: _onStepContinue,
-                      icon: const Icon(Icons.arrow_forward),
-                      label: const Text('Suivant'),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        elevation: 3,
-                      ),
-                    )
+                onPressed: _onStepContinue,
+                icon: const Icon(Icons.arrow_forward),
+                label: const Text('Suivant'),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  elevation: 3,
+                ),
+              )
                   : ElevatedButton.icon(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.check_circle),
-                      label: const Text('Terminer'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        elevation: 3,
-                      ),
-                    ),
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.check_circle),
+                label: const Text('Terminer'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  elevation: 3,
+                ),
+              ),
             ),
           ],
         ),

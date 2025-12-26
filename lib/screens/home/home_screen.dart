@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
- import 'package:mgi/screens/faq/faq_home_screen.dart';
+import 'package:mgi/screens/faq/faq_home_screen.dart';
 import 'package:provider/provider.dart';
 import '../../models/building_selection_model.dart';
 import '../../providers/auth_provider.dart';
@@ -456,7 +456,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   }
                 },
               ),
-              QuickAccessCard(
+          /*    QuickAccessCard(
                 title: 'Sinistres',
                 subtitle: 'Consulter les sinistres',
                 icon: Icons.warning_amber_rounded,
@@ -468,7 +468,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                     ),
                   );
                 },
-              ),
+              ),*/
               QuickAccessCard(
                 title: 'FAQ & Assistance',
                 subtitle: 'Trouver des réponses',

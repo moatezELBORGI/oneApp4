@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +42,7 @@ public class ApartmentManagementService {
 
         Apartment apartment = new Apartment();
         String apartmentId=request.getBuildingId()+"-"+ LocalDate.now().getYear()+request.getNumber();
-apartment.setIdApartment(apartmentId);
+        apartment.setIdApartment(apartmentId);
         apartment.setApartmentLabel(request.getPropertyName());
         apartment.setApartmentNumber(request.getNumber());
         apartment.setApartmentFloor(request.getFloor());
@@ -260,11 +261,11 @@ apartment.setIdApartment(apartmentId);
         apartmentRepository.save(apartment);
 
         if (request.getSurface() != null || request.getFloor() != null) {
-            ApartmentGeneralInfo generalInfo = apartmentGeneralInfoRepository.findById(apartmentId)
+            ApartmentGeneralInfo generalInfo = apartmentGeneralInfoRepository.findById(Long.valueOf(apartmentId))
                     .orElse(new ApartmentGeneralInfo());
             generalInfo.setApartmentId(apartmentId);
             if (request.getSurface() != null) {
-                generalInfo.setSurface(request.getSurface());
+                generalInfo.setSurface(BigDecimal.valueOf(request.getSurface()));
             }
             if (request.getFloor() != null) {
                 generalInfo.setEtage(request.getFloor());

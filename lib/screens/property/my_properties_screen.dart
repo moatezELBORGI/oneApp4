@@ -63,46 +63,46 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _properties == null || _properties!.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.home_work_outlined,
-                        size: 80,
-                        color: Colors.grey[400],
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Aucun bien trouvé',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: AppTheme.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Vous ne possédez aucun bien dans cet immeuble',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              : RefreshIndicator(
-                  onRefresh: _loadProperties,
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: _properties!.length,
-                    itemBuilder: (context, index) {
-                      final property = _properties![index];
-                      return _buildPropertyCard(property);
-                    },
-                  ),
-                ),
+          ? Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.home_work_outlined,
+              size: 80,
+              color: Colors.grey[400],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Aucun bien trouvé',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Vous ne possédez aucun bien dans cet immeuble',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[600],
+              ),
+            ),
+          ],
+        ),
+      )
+          : RefreshIndicator(
+        onRefresh: _loadProperties,
+        child: ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: _properties!.length,
+          itemBuilder: (context, index) {
+            final property = _properties![index];
+            return _buildPropertyCard(property);
+          },
+        ),
+      ),
     );
   }
 

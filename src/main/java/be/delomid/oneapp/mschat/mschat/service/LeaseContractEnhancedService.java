@@ -63,8 +63,8 @@ public class LeaseContractEnhancedService {
                     }
                     String lowerSearch = search.toLowerCase();
                     return (resident.getFname() != null && resident.getFname().toLowerCase().contains(lowerSearch)) ||
-                           (resident.getLname() != null && resident.getLname().toLowerCase().contains(lowerSearch)) ||
-                           (resident.getEmail() != null && resident.getEmail().toLowerCase().contains(lowerSearch));
+                            (resident.getLname() != null && resident.getLname().toLowerCase().contains(lowerSearch)) ||
+                            (resident.getEmail() != null && resident.getEmail().toLowerCase().contains(lowerSearch));
                 })
                 .map(resident -> {
                     ResidentDto dto = ResidentDto.builder()

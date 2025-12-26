@@ -251,10 +251,10 @@ class _EditApartmentWizardScreenState extends State<EditApartmentWizardScreen>
       final List<Map<String, dynamic>> customFieldsData = _customFields
           .where((cf) => cf.value.isNotEmpty)
           .map((cf) => {
-                'fieldLabel': cf.label,
-                'fieldValue': cf.value,
-                'isSystemField': cf.isSystemField,
-              })
+        'fieldLabel': cf.label,
+        'fieldValue': cf.value,
+        'isSystemField': cf.isSystemField,
+      })
           .toList();
 
       final basicInfoData = {
@@ -366,63 +366,63 @@ class _EditApartmentWizardScreenState extends State<EditApartmentWizardScreen>
       ),
       body: _isLoading
           ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      Theme.of(context).primaryColor,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    'Chargement...',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey[700],
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(
+                Theme.of(context).primaryColor,
               ),
-            )
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Chargement...',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey[700],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      )
           : _isSaving
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          Theme.of(context).primaryColor,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      Text(
-                        'Sauvegarde en cours...',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey[700],
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              : Column(
-                  children: [
-                    _buildProgressIndicator(),
-                    Expanded(
-                      child: FadeTransition(
-                        opacity: _fadeAnimation,
-                        child: SlideTransition(
-                          position: _slideAnimation,
-                          child: _buildCurrentStepContent(),
-                        ),
-                      ),
-                    ),
-                    _buildNavigationButtons(),
-                  ],
-                ),
+          ? Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(
+                Theme.of(context).primaryColor,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Sauvegarde en cours...',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey[700],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      )
+          : Column(
+        children: [
+          _buildProgressIndicator(),
+          Expanded(
+            child: FadeTransition(
+              opacity: _fadeAnimation,
+              child: SlideTransition(
+                position: _slideAnimation,
+                child: _buildCurrentStepContent(),
+              ),
+            ),
+          ),
+          _buildNavigationButtons(),
+        ],
+      ),
     );
   }
 
@@ -466,19 +466,19 @@ class _EditApartmentWizardScreenState extends State<EditApartmentWizardScreen>
             color: isCompleted
                 ? Colors.green
                 : isActive
-                    ? Theme.of(context).primaryColor
-                    : Colors.grey[300],
+                ? Theme.of(context).primaryColor
+                : Colors.grey[300],
             boxShadow: isActive
                 ? [
-                    BoxShadow(
-                      color: (isCompleted
-                              ? Colors.green
-                              : Theme.of(context).primaryColor)
-                          .withOpacity(0.3),
-                      blurRadius: 12,
-                      spreadRadius: 2,
-                    )
-                  ]
+              BoxShadow(
+                color: (isCompleted
+                    ? Colors.green
+                    : Theme.of(context).primaryColor)
+                    .withOpacity(0.3),
+                blurRadius: 12,
+                spreadRadius: 2,
+              )
+            ]
                 : [],
           ),
           child: Icon(
@@ -921,7 +921,7 @@ class _EditApartmentWizardScreenState extends State<EditApartmentWizardScreen>
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child:
-                        Icon(Icons.extension, color: Colors.orange[700], size: 28),
+                    Icon(Icons.extension, color: Colors.orange[700], size: 28),
                   ),
                   const SizedBox(width: 16),
                   const Expanded(

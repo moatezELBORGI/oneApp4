@@ -308,7 +308,7 @@ public class InventoryService {
                 .orElseThrow(() -> new RuntimeException("Photo not found"));
 
         if (!photo.getRoomEntry().getId().equals(roomEntryId) ||
-            !photo.getRoomEntry().getInventory().getId().equals(inventoryId)) {
+                !photo.getRoomEntry().getInventory().getId().equals(inventoryId)) {
             throw new RuntimeException("Photo does not belong to this room entry");
         }
 

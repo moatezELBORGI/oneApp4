@@ -324,10 +324,10 @@ class _InventoryRoomDetailScreenState extends State<InventoryRoomDetailScreen> {
           IconButton(
             icon: _isLoading
                 ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                  )
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+            )
                 : const Icon(Icons.save),
             onPressed: _isLoading ? null : _saveDescription,
           ),
@@ -372,27 +372,27 @@ class _InventoryRoomDetailScreenState extends State<InventoryRoomDetailScreen> {
                         Expanded(
                           child: _isTranscribing
                               ? const Center(
-                                  child: Column(
-                                    children: [
-                                      CircularProgressIndicator(),
-                                      SizedBox(height: 8),
-                                      Text(
-                                        'Transcription en cours...',
-                                        style: TextStyle(fontSize: 12),
-                                      ),
-                                    ],
-                                  ),
-                                )
-                              : ElevatedButton.icon(
-                                  onPressed: _isRecording ? _stopRecording : _startRecording,
-                                  icon: Icon(_isRecording ? Icons.stop : Icons.mic),
-                                  label: Text(_isRecording ? 'Arrêter l\'enregistrement' : 'Enregistrer un message vocal'),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: _isRecording ? Colors.red : Colors.blue,
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
-                                  ),
+                            child: Column(
+                              children: [
+                                CircularProgressIndicator(),
+                                SizedBox(height: 8),
+                                Text(
+                                  'Transcription en cours...',
+                                  style: TextStyle(fontSize: 12),
                                 ),
+                              ],
+                            ),
+                          )
+                              : ElevatedButton.icon(
+                            onPressed: _isRecording ? _stopRecording : _startRecording,
+                            icon: Icon(_isRecording ? Icons.stop : Icons.mic),
+                            label: Text(_isRecording ? 'Arrêter l\'enregistrement' : 'Enregistrer un message vocal'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: _isRecording ? Colors.red : Colors.blue,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -460,8 +460,8 @@ class _InventoryRoomDetailScreenState extends State<InventoryRoomDetailScreen> {
                           child: Column(
                             children: [
                               Icon(Icons.photo_library_outlined,
-                                   size: 64,
-                                   color: Colors.grey[400]),
+                                  size: 64,
+                                  color: Colors.grey[400]),
                               const SizedBox(height: 16),
                               Text(
                                 'Aucune photo',
@@ -495,9 +495,9 @@ class _InventoryRoomDetailScreenState extends State<InventoryRoomDetailScreen> {
                                   imageUrl: photo.photoUrl,
                                   fit: BoxFit.cover,
                                   placeholder: (context, url) =>
-                                      const Center(child: CircularProgressIndicator()),
+                                  const Center(child: CircularProgressIndicator()),
                                   errorWidget: (context, url, error) =>
-                                      const Icon(Icons.error),
+                                  const Icon(Icons.error),
                                 ),
                               ),
                               Positioned(

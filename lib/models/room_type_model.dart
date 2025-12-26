@@ -17,8 +17,8 @@ class RoomTypeModel {
       name: json['name'],
       buildingId: json['buildingId'],
       fieldDefinitions: (json['fieldDefinitions'] as List?)
-              ?.map((e) => RoomTypeFieldDefinitionModel.fromJson(e))
-              .toList() ??
+          ?.map((e) => RoomTypeFieldDefinitionModel.fromJson(e))
+          .toList() ??
           [],
     );
   }

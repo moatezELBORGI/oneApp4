@@ -39,12 +39,11 @@ public class DataInitializationService implements CommandLineRunner {
     public void run(String... args) {
         log.info("Initializing application data...");
 
-        initializeCountries();
-        initializeSuperAdmin();
-        initializeTestData();
+     initializeCountries();
+       initializeSuperAdmin();
+      initializeTestData();
         initFaqData();
         initializeRoomTypes();
-        initializeBrusselsLeaseArticles();
 
         log.info("Application data initialization completed");
     }
@@ -111,137 +110,137 @@ public class DataInitializationService implements CommandLineRunner {
             belgium = countryRepository.findAll().get(0);
         }
 
-            // ==================== IMMEUBLE: DELOMID IT IMMEUBLE ====================
+        // ==================== IMMEUBLE: DELOMID IT IMMEUBLE ====================
 
-            Address addressBruxelles = Address.builder()
-                    .address("Avenue Louise 250")
-                    .codePostal("1050")
-                    .ville("Bruxelles")
-                    .pays(belgium)
-                    .build();
+        Address addressBruxelles = Address.builder()
+                .address("Avenue Louise 250")
+                .codePostal("1050")
+                .ville("Bruxelles")
+                .pays(belgium)
+                .build();
 
-            Building building = Building.builder()
-                    .buildingId("BEL-2025-IT-IMMEUBLE")
-                    .buildingLabel("Delomid IT Immeuble")
-                    .buildingNumber("250")
-                    .yearOfConstruction(2024)
-                    .numberOfFloors(5)
-                    .address(addressBruxelles)
-                    .build();
+        Building building = Building.builder()
+                .buildingId("BEL-2025-IT-IMMEUBLE")
+                .buildingLabel("Delomid IT Immeuble")
+                .buildingNumber("250")
+                .yearOfConstruction(2024)
+                .numberOfFloors(5)
+                .address(addressBruxelles)
+                .build();
 
-            building = buildingRepository.save(building);
-            log.info("Building created: Delomid IT Immeuble");
+        building = buildingRepository.save(building);
+        log.info("Building created: Delomid IT Immeuble");
 
-            // ==================== ADMIN BUILDING 1 ====================
-            Resident adminAmir = Resident.builder()
-                    .idUsers(UUID.randomUUID().toString())
-                    .fname("Amir")
-                    .lname("Admin")
-                    .email("amir@delomid-it.com")
-                    .password(passwordEncoder.encode("Delomid2019!"))
-                    .phoneNumber("+32470111222")
-                    .role(UserRole.BUILDING_ADMIN)
-                    .accountStatus(AccountStatus.ACTIVE)
-                    .isEnabled(true)
-                    .isAccountNonExpired(true)
-                    .isAccountNonLocked(true)
-                    .isCredentialsNonExpired(true)
-                    .build();
-            adminAmir = residentRepository.save(adminAmir);
-            log.info("Admin Building 1 created: amir@delomid-it.com / Delomid2019!");
+        // ==================== ADMIN BUILDING 1 ====================
+        Resident adminAmir = Resident.builder()
+                .idUsers(UUID.randomUUID().toString())
+                .fname("Amir")
+                .lname("Admin")
+                .email("amir@delomid-it.com")
+                .password(passwordEncoder.encode("Delomid2019!"))
+                .phoneNumber("+32470111222")
+                .role(UserRole.BUILDING_ADMIN)
+                .accountStatus(AccountStatus.ACTIVE)
+                .isEnabled(true)
+                .isAccountNonExpired(true)
+                .isAccountNonLocked(true)
+                .isCredentialsNonExpired(true)
+                .build();
+        adminAmir = residentRepository.save(adminAmir);
+        log.info("Admin Building 1 created: amir@delomid-it.com / Delomid2019!");
 
-            ResidentBuilding rbAdminAmir = ResidentBuilding.builder()
-                    .resident(adminAmir)
-                    .building(building)
-                    .apartment(null)
-                    .roleInBuilding(UserRole.BUILDING_ADMIN)
-                    .build();
-            residentBuildingRepository.save(rbAdminAmir);
+        ResidentBuilding rbAdminAmir = ResidentBuilding.builder()
+                .resident(adminAmir)
+                .building(building)
+                .apartment(null)
+                .roleInBuilding(UserRole.BUILDING_ADMIN)
+                .build();
+        residentBuildingRepository.save(rbAdminAmir);
 
-            // ==================== ADMIN BUILDING 2 ====================
-            Resident adminMoatez = Resident.builder()
-                    .idUsers(UUID.randomUUID().toString())
-                    .fname("Moatez")
-                    .lname("Admin")
-                    .email("moatez@delomid-it.com")
-                    .password(passwordEncoder.encode("Delomid2019!"))
-                    .phoneNumber("+32470222333")
-                    .role(UserRole.BUILDING_ADMIN)
-                    .accountStatus(AccountStatus.ACTIVE)
-                    .isEnabled(true)
-                    .isAccountNonExpired(true)
-                    .isAccountNonLocked(true)
-                    .isCredentialsNonExpired(true)
-                    .build();
-            adminMoatez = residentRepository.save(adminMoatez);
-            log.info("Admin Building 2 created: moatez@delomid-it.com / Delomid2019!");
+        // ==================== ADMIN BUILDING 2 ====================
+        Resident adminMoatez = Resident.builder()
+                .idUsers(UUID.randomUUID().toString())
+                .fname("Moatez")
+                .lname("Admin")
+                .email("moatez@delomid-it.com")
+                .password(passwordEncoder.encode("Delomid2019!"))
+                .phoneNumber("+32470222333")
+                .role(UserRole.BUILDING_ADMIN)
+                .accountStatus(AccountStatus.ACTIVE)
+                .isEnabled(true)
+                .isAccountNonExpired(true)
+                .isAccountNonLocked(true)
+                .isCredentialsNonExpired(true)
+                .build();
+        adminMoatez = residentRepository.save(adminMoatez);
+        log.info("Admin Building 2 created: moatez@delomid-it.com / Delomid2019!");
 
-            ResidentBuilding rbAdminMoatez = ResidentBuilding.builder()
-                    .resident(adminMoatez)
-                    .building(building)
-                    .apartment(null)
-                    .roleInBuilding(UserRole.BUILDING_ADMIN)
-                    .build();
-            residentBuildingRepository.save(rbAdminMoatez);
+        ResidentBuilding rbAdminMoatez = ResidentBuilding.builder()
+                .resident(adminMoatez)
+                .building(building)
+                .apartment(null)
+                .roleInBuilding(UserRole.BUILDING_ADMIN)
+                .build();
+        residentBuildingRepository.save(rbAdminMoatez);
 
-            // ==================== UTILISATEUR 1 (SANS APPARTEMENT) ====================
-            Resident user1 = Resident.builder()
-                    .idUsers(UUID.randomUUID().toString())
-                    .fname("Moatez")
-                    .lname("El Borgi")
-                    .email("moatezelborgi@gmail.com")
-                    .password(passwordEncoder.encode("Delomid2019!"))
-                    .phoneNumber("+32470333444")
-                    .role(UserRole.RESIDENT)
-                    .accountStatus(AccountStatus.ACTIVE)
-                    .isEnabled(true)
-                    .isAccountNonExpired(true)
-                    .isAccountNonLocked(true)
-                    .isCredentialsNonExpired(true)
-                    .build();
-            user1 = residentRepository.save(user1);
-            log.info("User 1 created: moatezelborgi@gmail.com / Delomid2019!");
+        // ==================== UTILISATEUR 1 (SANS APPARTEMENT) ====================
+        Resident user1 = Resident.builder()
+                .idUsers(UUID.randomUUID().toString())
+                .fname("Moatez")
+                .lname("El Borgi")
+                .email("moatezelborgi@gmail.com")
+                .password(passwordEncoder.encode("Delomid2019!"))
+                .phoneNumber("+32470333444")
+                .role(UserRole.RESIDENT)
+                .accountStatus(AccountStatus.ACTIVE)
+                .isEnabled(true)
+                .isAccountNonExpired(true)
+                .isAccountNonLocked(true)
+                .isCredentialsNonExpired(true)
+                .build();
+        user1 = residentRepository.save(user1);
+        log.info("User 1 created: moatezelborgi@gmail.com / Delomid2019!");
 
-            ResidentBuilding rbUser1 = ResidentBuilding.builder()
-                    .resident(user1)
-                    .building(building)
-                    .apartment(null)
-                    .roleInBuilding(UserRole.RESIDENT)
-                    .build();
-            residentBuildingRepository.save(rbUser1);
+        ResidentBuilding rbUser1 = ResidentBuilding.builder()
+                .resident(user1)
+                .building(building)
+                .apartment(null)
+                .roleInBuilding(UserRole.RESIDENT)
+                .build();
+        residentBuildingRepository.save(rbUser1);
 
-            // ==================== UTILISATEUR 2 (SANS APPARTEMENT) ====================
-            Resident user2 = Resident.builder()
-                    .idUsers(UUID.randomUUID().toString())
-                    .fname("Moatez")
-                    .lname("Borgi")
-                    .email("moatezborgi@soft-verse.com")
-                    .password(passwordEncoder.encode("Delomid2019!"))
-                    .phoneNumber("+32470444555")
-                    .role(UserRole.RESIDENT)
-                    .accountStatus(AccountStatus.ACTIVE)
-                    .isEnabled(true)
-                    .isAccountNonExpired(true)
-                    .isAccountNonLocked(true)
-                    .isCredentialsNonExpired(true)
-                    .build();
-            user2 = residentRepository.save(user2);
-            log.info("User 2 created: moatezborgi@soft-verse.com / Delomid2019!");
+        // ==================== UTILISATEUR 2 (SANS APPARTEMENT) ====================
+        Resident user2 = Resident.builder()
+                .idUsers(UUID.randomUUID().toString())
+                .fname("Moatez")
+                .lname("Borgi")
+                .email("moatezborgi@soft-verse.com")
+                .password(passwordEncoder.encode("Delomid2019!"))
+                .phoneNumber("+32470444555")
+                .role(UserRole.RESIDENT)
+                .accountStatus(AccountStatus.ACTIVE)
+                .isEnabled(true)
+                .isAccountNonExpired(true)
+                .isAccountNonLocked(true)
+                .isCredentialsNonExpired(true)
+                .build();
+        user2 = residentRepository.save(user2);
+        log.info("User 2 created: moatezborgi@soft-verse.com / Delomid2019!");
 
-            ResidentBuilding rbUser2 = ResidentBuilding.builder()
-                    .resident(user2)
-                    .building(building)
-                    .apartment(null)
-                    .roleInBuilding(UserRole.RESIDENT)
-                    .build();
-            residentBuildingRepository.save(rbUser2);
+        ResidentBuilding rbUser2 = ResidentBuilding.builder()
+                .resident(user2)
+                .building(building)
+                .apartment(null)
+                .roleInBuilding(UserRole.RESIDENT)
+                .build();
+        residentBuildingRepository.save(rbUser2);
 
-            log.info("==================== INITIALIZATION COMPLETE ====================");
-            log.info("Immeuble: Delomid IT Immeuble (Bruxelles, Belgique)");
-            log.info("Admin Building 1: amir@delomid-it.com / Delomid2019!");
-            log.info("Admin Building 2: moatez@delomid-it.com / Delomid2019!");
-            log.info("User 1 (sans appartement): moatezelborgi@gmail.com / Delomid2019!");
-            log.info("User 2 (sans appartement): moatezborgi@soft-verse.com / Delomid2019!");
+        log.info("==================== INITIALIZATION COMPLETE ====================");
+        log.info("Immeuble: Delomid IT Immeuble (Bruxelles, Belgique)");
+        log.info("Admin Building 1: amir@delomid-it.com / Delomid2019!");
+        log.info("Admin Building 2: moatez@delomid-it.com / Delomid2019!");
+        log.info("User 1 (sans appartement): moatezelborgi@gmail.com / Delomid2019!");
+        log.info("User 2 (sans appartement): moatezborgi@soft-verse.com / Delomid2019!");
     }
     private void initFaqData()
     {
@@ -499,228 +498,6 @@ public class DataInitializationService implements CommandLineRunner {
            log.info("4 rooms created for apartment 101");
        }
    */
-    private void initializeBrusselsLeaseArticles() {
-        List<LeaseContractArticle> articles = new ArrayList<>();
-
-        articles.add(LeaseContractArticle.builder()
-                .regionCode("BE-BXL")
-                .articleNumber("1")
-                .articleTitle("Description du bien loué")
-                .articleContent("Par le présent bail, le bailleur donne au preneur, qui l'accepte, le bien immeuble comprenant le type de bien, tous les locaux et parties d'immeuble faisant l'objet du bail, la superficie habitable (plancher), le nombre de pièces, de salles de bain, de chambres, la présence d'une cuisine (équipée ou non), l'année de construction si elle est connue du bailleur, la présence ou non d'un chauffage central, d'un système thermostatique, la présence ou non de doubles vitrages à toutes les fenêtres du logement, la présence ou non d'une cave, d'un grenier, d'un balcon, d'une terrasse ou d'un jardin, les espaces communs et privatifs.")
-                .orderIndex(0)
-                .isMandatory(true)
-                .build());
-
-        articles.add(LeaseContractArticle.builder()
-                .regionCode("BE-BXL")
-                .articleNumber("2")
-                .articleTitle("Destination du bien loué")
-                .articleContent("Les parties conviennent que le présent bail est destiné à usage de résidence principale. Il est interdit au preneur de modifier cette destination sans l'accord exprès, préalable et écrit du bailleur, qui ne refusera pas cet accord sans juste motif.")
-                .orderIndex(1)
-                .isMandatory(true)
-                .build());
-
-        articles.add(LeaseContractArticle.builder()
-                .regionCode("BE-BXL")
-                .articleNumber("3")
-                .articleTitle("Durée du bail")
-                .articleContent("Le bail est conclu pour un terme de neuf ans. Il prend fin à l'expiration de cette période de neuf années moyennant un congé notifié par écrit au moins six mois avant l'échéance. A défaut d'un congé notifié dans le délai prévu, le bail sera prorogé chaque fois pour une durée de trois ans, aux mêmes conditions, en ce compris le loyer, sans préjudice de l'indexation et des causes de révision.")
-                .orderIndex(2)
-                .isMandatory(true)
-                .build());
-
-        articles.add(LeaseContractArticle.builder()
-                .regionCode("BE-BXL")
-                .articleNumber("3.1")
-                .articleTitle("Résiliation anticipée par le preneur")
-                .articleContent("Le preneur peut mettre fin au bail à tout moment, moyennant un congé donné par écrit par lettre recommandée et un préavis de trois mois. Si le preneur met fin au bail au cours du premier triennat, le bailleur a droit à une indemnité. Cette indemnité est égale à trois mois, deux mois ou un mois de loyer selon que le bail prend fin au cours de la première, de la deuxième ou de la troisième année.")
-                .orderIndex(3)
-                .isMandatory(true)
-                .build());
-
-        articles.add(LeaseContractArticle.builder()
-                .regionCode("BE-BXL")
-                .articleNumber("4")
-                .articleTitle("Loyer (hors charges)")
-                .articleContent("Le bail est consenti et accepté moyennant le paiement d'un loyer initial de base défini dans les conditions financières. Le loyer doit être payé chaque mois, au plus tard le premier jour de chaque période.")
-                .orderIndex(4)
-                .isMandatory(true)
-                .build());
-
-        articles.add(LeaseContractArticle.builder()
-                .regionCode("BE-BXL")
-                .articleNumber("4.1")
-                .articleTitle("Indexation du loyer")
-                .articleContent("Chacune des parties pourra demander l'indexation du loyer au maximum une fois par an, à la date anniversaire de l'entrée en vigueur du bail et sur demande écrite de la partie intéressée, conformément à la formule suivante : loyer de base x indice nouveau / indice de base. L'indexation n'est possible que si le bailleur a préalablement enregistré le bail et fourni un certificat PEB au preneur.")
-                .orderIndex(5)
-                .isMandatory(true)
-                .build());
-
-        articles.add(LeaseContractArticle.builder()
-                .regionCode("BE-BXL")
-                .articleNumber("4.2")
-                .articleTitle("Révision périodique du loyer")
-                .articleContent("En cas de renouvellement ou de prorogation du bail, les parties pourront convenir de la révision du loyer entre le neuvième et le sixième mois précédant l'expiration de chaque triennat. A défaut d'accord entre les parties, le juge peut accorder la révision du loyer aux conditions prévues par le Code bruxellois du Logement.")
-                .orderIndex(6)
-                .isMandatory(true)
-                .build());
-
-        articles.add(LeaseContractArticle.builder()
-                .regionCode("BE-BXL")
-                .articleNumber("5")
-                .articleTitle("Frais et charges")
-                .articleContent("Les frais et charges imposés au preneur correspondent à des dépenses réelles. Seules les dépenses pour des postes qui sont libellés explicitement et énumérés limitativement dans le présent bail sont dues. Si les frais et charges sont des dépenses réelles, ils doivent être détaillés dans un décompte distinct du loyer. Le bailleur l'établit à chaque date anniversaire de l'entrée en vigueur du bail, qu'il communique au preneur dans les douze mois qui suivent.")
-                .orderIndex(7)
-                .isMandatory(true)
-                .build());
-
-        articles.add(LeaseContractArticle.builder()
-                .regionCode("BE-BXL")
-                .articleNumber("6")
-                .articleTitle("Intérêts de retard")
-                .articleContent("Pour toutes sommes dues par l'une des parties en vertu du présent contrat et à défaut de paiement à l'échéance, la partie en défaut sera redevable d'intérêts de retard sur les sommes restant dues jusqu'à apurement de ses arriérés. Le taux d'intérêts applicable correspond au taux d'intérêt légal.")
-                .orderIndex(8)
-                .isMandatory(true)
-                .build());
-
-        articles.add(LeaseContractArticle.builder()
-                .regionCode("BE-BXL")
-                .articleNumber("7")
-                .articleTitle("Impôts et taxes")
-                .articleContent("Le précompte immobilier ne peut être mis à charge du preneur. Les impôts et taxes relatifs à la jouissance du bien mis ou à mettre sur le bien loué par l'État, la Région, la Province, la Commune ou toute autre autorité publique, sont à charge du preneur ou du bailleur selon les modalités convenues.")
-                .orderIndex(9)
-                .isMandatory(true)
-                .build());
-
-        articles.add(LeaseContractArticle.builder()
-                .regionCode("BE-BXL")
-                .articleNumber("8")
-                .articleTitle("Garantie locative")
-                .articleContent("En vue d'assurer le respect de ses obligations, le preneur constitue une garantie locative avant l'entrée en vigueur du bail et avant la remise des clés. La garantie locative ne peut excéder un montant équivalent à deux mois de loyer. En cours de bail, il est interdit aux parties d'affecter la garantie au paiement des loyers ou des charges.")
-                .orderIndex(10)
-                .isMandatory(true)
-                .build());
-
-        articles.add(LeaseContractArticle.builder()
-                .regionCode("BE-BXL")
-                .articleNumber("9")
-                .articleTitle("État des lieux")
-                .articleContent("Les parties s'engagent, avant l'entrée en jouissance du preneur, à dresser contradictoirement un état des lieux détaillé, à l'amiable ou par un expert. Cet état des lieux est dressé, soit au cours de la période où les locaux sont inoccupés, soit au cours du premier mois d'occupation. Il est annexé au présent bail et doit être enregistré. A défaut d'état des lieux d'entrée, le preneur sera présumé, à l'issue du bail, avoir reçu le bien loué dans le même état que celui où il se trouve à la fin du bail.")
-                .orderIndex(11)
-                .isMandatory(true)
-                .build());
-
-        articles.add(LeaseContractArticle.builder()
-                .regionCode("BE-BXL")
-                .articleNumber("10")
-                .articleTitle("Entretien et réparations")
-                .articleContent("Le preneur est tenu d'effectuer les travaux de menu entretien ainsi que les réparations locatives qui ne sont pas occasionnées par vétusté ou force majeure. Le bailleur devra pour sa part effectuer, pendant la durée du bail, toutes les réparations qui peuvent devenir nécessaires, autres que les travaux de menu entretien et les réparations locatives ainsi que ceux qui résultent de la faute du preneur.")
-                .orderIndex(12)
-                .isMandatory(true)
-                .build());
-
-        articles.add(LeaseContractArticle.builder()
-                .regionCode("BE-BXL")
-                .articleNumber("11")
-                .articleTitle("Travaux et modifications")
-                .articleContent("Tous travaux, embellissements, améliorations, transformations du bien loué ne pourront être effectués qu'avec l'accord écrit, préalable et exprès du bailleur qui ne refusera pas son accord sans juste motif. En tout état de cause, ils seront effectués par le preneur à ses frais, risques et périls.")
-                .orderIndex(13)
-                .isMandatory(true)
-                .build());
-
-        articles.add(LeaseContractArticle.builder()
-                .regionCode("BE-BXL")
-                .articleNumber("12")
-                .articleTitle("Cession du bail")
-                .articleContent("La cession du bail est interdite sauf accord exprès, écrit et préalable du bailleur. Dans ce cas, le cédant est déchargé de toute obligation future, sauf convention contraire. Le bailleur communique son accord ou son refus sur la cession dans les trente jours de la réception du projet. Passé ce délai, la cession est réputée acceptée.")
-                .orderIndex(14)
-                .isMandatory(true)
-                .build());
-
-        articles.add(LeaseContractArticle.builder()
-                .regionCode("BE-BXL")
-                .articleNumber("13")
-                .articleTitle("Sous-location")
-                .articleContent("Le preneur ne peut sous-louer la totalité du bien. Le preneur peut sous-louer une partie du bien loué avec l'accord du bailleur et à condition que le reste du bien loué demeure affecté à sa résidence principale.")
-                .orderIndex(15)
-                .isMandatory(true)
-                .build());
-
-        articles.add(LeaseContractArticle.builder()
-                .regionCode("BE-BXL")
-                .articleNumber("14")
-                .articleTitle("Droit d'information en cas de vente")
-                .articleContent("En cas de mise en vente du logement, le preneur dispose d'un droit de préférence, à la condition qu'il soit domicilié dans ledit logement. Ce droit de préférence s'exerce selon les conditions prévues par le Code bruxellois du Logement.")
-                .orderIndex(16)
-                .isMandatory(true)
-                .build());
-
-        articles.add(LeaseContractArticle.builder()
-                .regionCode("BE-BXL")
-                .articleNumber("15")
-                .articleTitle("Affichages et visites")
-                .articleContent("Avant l'époque où finira le présent bail, ainsi qu'en cas de mise en vente du bien, le preneur devra tolérer, jusqu'au jour de sa sortie, que des placards soient apposés aux endroits les plus apparents, et que les amateurs puissent visiter librement et complètement les lieux selon les créneaux convenus entre les parties.")
-                .orderIndex(17)
-                .isMandatory(true)
-                .build());
-
-        articles.add(LeaseContractArticle.builder()
-                .regionCode("BE-BXL")
-                .articleNumber("16")
-                .articleTitle("Assurance")
-                .articleContent("Le preneur répond de l'incendie et du dégât des eaux, à moins qu'il ne prouve que celui-ci s'est déclaré sans sa faute. Sa responsabilité est couverte par une assurance conclue auprès d'un assureur autorisé. Le preneur contracte une assurance contre l'incendie et le dégât des eaux préalablement à l'entrée dans les lieux et doit apporter annuellement la preuve du paiement des primes.")
-                .orderIndex(18)
-                .isMandatory(true)
-                .build());
-
-        articles.add(LeaseContractArticle.builder()
-                .regionCode("BE-BXL")
-                .articleNumber("17")
-                .articleTitle("Résolution")
-                .articleContent("En cas de résolution judiciaire aux torts du preneur, celui-ci devra supporter tous les frais et payer une indemnité forfaitaire équivalente au loyer d'un trimestre. En cas de résolution judiciaire aux torts du bailleur, celui-ci devra supporter tous les frais et payer au preneur une indemnité forfaitaire équivalente au loyer d'un trimestre.")
-                .orderIndex(19)
-                .isMandatory(true)
-                .build());
-
-        articles.add(LeaseContractArticle.builder()
-                .regionCode("BE-BXL")
-                .articleNumber("18")
-                .articleTitle("Enregistrement du bail")
-                .articleContent("Les formalités de l'enregistrement et les frais éventuels qui y sont liés sont à charge du bailleur. Le bailleur s'engage à enregistrer le bail dans les deux mois de sa signature, de même que les annexes signées et l'état des lieux d'entrée. Il remet la preuve au preneur.")
-                .orderIndex(20)
-                .isMandatory(true)
-                .build());
-
-        articles.add(LeaseContractArticle.builder()
-                .regionCode("BE-BXL")
-                .articleNumber("19")
-                .articleTitle("Droit applicable et litiges")
-                .articleContent("Le présent contrat est régi par le droit belge et spécialement le Code bruxellois du Logement. Les juridictions de Bruxelles sont seules compétentes en cas de litige. Sans préjudice de la saisine d'une juridiction, les parties peuvent régler leur différend à l'amiable en recourant aux services d'un médiateur agréé.")
-                .orderIndex(21)
-                .isMandatory(true)
-                .build());
-
-        articles.add(LeaseContractArticle.builder()
-                .regionCode("BE-BXL")
-                .articleNumber("20")
-                .articleTitle("Notification")
-                .articleContent("Toutes les notifications faites par lettre recommandée sont censées faites à la date de dépôt à la poste, la date du récépissé faisant foi de l'envoi dans le délai imparti.")
-                .orderIndex(22)
-                .isMandatory(true)
-                .build());
-
-        articles.add(LeaseContractArticle.builder()
-                .regionCode("BE-BXL")
-                .articleNumber("21")
-                .articleTitle("Élection de domicile")
-                .articleContent("Le preneur déclare élire domicile dans le bien loué tant pour la durée de la location que pour toutes les suites du bail, sauf s'il a, après son départ, notifié au bailleur une nouvelle élection de domicile, obligatoirement en Belgique.")
-                .orderIndex(23)
-                .isMandatory(true)
-                .build());
-
-        leaseContractArticleRepository.saveAll(articles);
-        log.info("Initialized {} standard articles for Brussels lease contracts (BE-BXL)", articles.size());
-    }
 
     private void initializeRoomTypes() {
         if (roomTypeRepository.count() > 0) {
