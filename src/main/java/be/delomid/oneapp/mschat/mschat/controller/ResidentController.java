@@ -1,8 +1,10 @@
 package be.delomid.oneapp.mschat.mschat.controller;
 
  import be.delomid.oneapp.mschat.mschat.dto.CreateResidentRequest;
+ import be.delomid.oneapp.mschat.mschat.dto.CreateTenantQuickRequest;
  import be.delomid.oneapp.mschat.mschat.dto.ResidentDto;
  import be.delomid.oneapp.mschat.mschat.service.ResidentService;
+ import be.delomid.oneapp.mschat.mschat.service.TenantQuickCreateService;
  import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -21,14 +23,24 @@ import java.util.Optional;
 public class ResidentController {
 
     private final ResidentService residentService;
+    private final TenantQuickCreateService tenantQuickCreateService;
 
     @PostMapping
     public ResponseEntity<ResidentDto> createResident(
             @Valid @RequestBody CreateResidentRequest request,
             Authentication authentication) {
-        
+
         ResidentDto resident = residentService.createResident(request);
         return ResponseEntity.ok(resident);
+    }
+
+    @PostMapping("/tenant-quick")
+    public ResponseEntity<ResidentDto> createTenantQuick(
+            @Valid @RequestBody CreateTenantQuickRequest request,
+            Authentication authentication) {
+
+        ResidentDto tenant = tenantQuickCreateService.createTenantQuick(request);
+        return ResponseEntity.ok(tenant);
     }
 
     @GetMapping

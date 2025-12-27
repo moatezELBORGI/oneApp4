@@ -29,6 +29,8 @@ public class InventoryService {
     private final FileService fileService;
     private final ResidentBuildingRepository residentBuildingRepository;
     private final ApartmentRepository apartmentRepository;
+    private final PdfInventoryGenerationService pdfInventoryGenerationService;
+    private final PdfLeaseContractGenerationService pdfLeaseContractGenerationService;
 
     @Transactional
     public InventoryDto createInventory(CreateInventoryRequest request) {
@@ -36,6 +38,15 @@ public class InventoryService {
                 .orElseThrow(() -> new RuntimeException("Contract not found"));
 
         InventoryType type = InventoryType.valueOf(request.getType());
+
+        List<Inventory> existingInventories = inventoryRepository.findByContract_Id(contract.getId());
+        boolean hasExistingInventoryOfType = existingInventories.stream()
+                .anyMatch(inv -> inv.getType() == type);
+
+        if (hasExistingInventoryOfType) {
+            String inventoryTypeName = type == InventoryType.ENTRY ? "d'entrée" : "de sortie";
+            throw new RuntimeException("Un état des lieux " + inventoryTypeName + " existe déjà pour ce contrat. Un seul état des lieux de chaque type est autorisé par contrat.");
+        }
 
         Inventory inventory = Inventory.builder()
                 .contract(contract)
@@ -231,6 +242,24 @@ public class InventoryService {
                 }
             } else {
                 log.info("Tenant is owner-occupant, skipping resident_building creation");
+            }
+
+            try {
+                String inventoryPdfUrl = pdfInventoryGenerationService.generateInventoryPdf(inventory.getId());
+                inventory.setPdfUrl(inventoryPdfUrl);
+                inventoryRepository.save(inventory);
+                log.info("Generated PDF for inventory {}: {}", inventory.getId(), inventoryPdfUrl);
+            } catch (Exception e) {
+                log.error("Failed to generate PDF for inventory {}", inventory.getId(), e);
+            }
+
+            try {
+                String contractPdfUrl = pdfLeaseContractGenerationService.generateLeaseContractPdf(contract.getId());
+                contract.setPdfUrl(contractPdfUrl);
+                leaseContractRepository.save(contract);
+                log.info("Generated PDF for contract {}: {}", contract.getId(), contractPdfUrl);
+            } catch (Exception e) {
+                log.error("Failed to generate PDF for contract {}", contract.getId(), e);
             }
         }
     }
