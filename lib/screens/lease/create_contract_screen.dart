@@ -3,10 +3,12 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/lease_contract_service.dart';
 import '../../services/lease_contract_enhanced_service.dart';
+import '../../services/tenant_quick_create_service.dart';
 import '../../utils/app_theme.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/user_avatar.dart';
+import '../inventory/inventory_detail_screen.dart';
 
 class CreateContractScreen extends StatefulWidget {
   final String apartmentId;
@@ -24,6 +26,7 @@ class _CreateContractScreenState extends State<CreateContractScreen> {
   final _formKey = GlobalKey<FormState>();
   final LeaseContractService _contractService = LeaseContractService();
   final LeaseContractEnhancedService _enhancedService = LeaseContractEnhancedService();
+  final TenantQuickCreateService _tenantQuickCreateService = TenantQuickCreateService();
 
   final _rentController = TextEditingController();
   final _depositController = TextEditingController();
@@ -99,7 +102,7 @@ class _CreateContractScreenState extends State<CreateContractScreen> {
     }
   }
 
-  Future<void> _createContract() async {
+  Future<void> _createContractAndNavigateToInventory() async {
     if (!_formKey.currentState!.validate()) return;
     if (_startDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -120,7 +123,7 @@ class _CreateContractScreenState extends State<CreateContractScreen> {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final ownerId = authProvider.user?.id;
 
-      await _contractService.createContract(
+      final contract = await _contractService.createContract(
         apartmentId: widget.apartmentId,
         ownerId: ownerId!,
         tenantId: _selectedTenant!['idUsers'],
@@ -138,9 +141,19 @@ class _CreateContractScreenState extends State<CreateContractScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Contrat créé avec succès')),
+          const SnackBar(content: Text('Contrat enregistré en brouillon')),
         );
-        Navigator.pop(context, true);
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => InventoryDetailScreen(
+              contractId: contract.id,
+              inventoryType: 'ENTREE',
+              isNewInventory: true,
+            ),
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -153,6 +166,123 @@ class _CreateContractScreenState extends State<CreateContractScreen> {
         setState(() => _isLoading = false);
       }
     }
+  }
+
+  void _showCreateTenantDialog() {
+    final fnameController = TextEditingController();
+    final lnameController = TextEditingController();
+    final emailController = TextEditingController();
+    final phoneController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Créer un nouveau locataire'),
+          content: SingleChildScrollView(
+            child: Form(
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CustomTextField(
+                    controller: fnameController,
+                    label: 'Prénom',
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Le prénom est obligatoire';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  CustomTextField(
+                    controller: lnameController,
+                    label: 'Nom',
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Le nom est obligatoire';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  CustomTextField(
+                    controller: emailController,
+                    label: 'Email',
+                    keyboardType: TextInputType.emailAddress,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'L\'email est obligatoire';
+                      }
+                      if (!value.contains('@')) {
+                        return 'Email invalide';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  CustomTextField(
+                    controller: phoneController,
+                    label: 'Téléphone',
+                    keyboardType: TextInputType.phone,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Le téléphone est obligatoire';
+                      }
+                      return null;
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Annuler'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (formKey.currentState!.validate()) {
+                  try {
+                    final newTenant = await _tenantQuickCreateService.createTenantQuick(
+                      fname: fnameController.text.trim(),
+                      lname: lnameController.text.trim(),
+                      email: emailController.text.trim(),
+                      phoneNumber: phoneController.text.trim(),
+                    );
+
+                    if (mounted) {
+                      Navigator.pop(context);
+                      setState(() {
+                        _selectedTenant = newTenant;
+                        _searchController.text = '${newTenant['fname']} ${newTenant['lname']}';
+                        _showUsersList = false;
+                      });
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Locataire créé avec succès. Un email de bienvenue a été envoyé.'),
+                        ),
+                      );
+                      _loadNonResidentUsers();
+                    }
+                  } catch (e) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Erreur: $e')),
+                      );
+                    }
+                  }
+                }
+              },
+              child: const Text('Créer'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _addCustomSection() {
@@ -222,6 +352,28 @@ class _CreateContractScreenState extends State<CreateContractScreen> {
                       onTap: () {
                         setState(() => _showUsersList = true);
                       },
+                    ),
+                    const SizedBox(height: 8),
+                    GestureDetector(
+                      onTap: _showCreateTenantDialog,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Row(
+                          children: [
+                            Icon(Icons.add_circle_outline, size: 16, color: AppTheme.primaryColor),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Utilisateur non trouvé ?',
+                              style: TextStyle(
+                                color: AppTheme.primaryColor,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                     if (_showUsersList && !_loadingUsers) ...[
                       const SizedBox(height: 8),
@@ -429,261 +581,10 @@ class _CreateContractScreenState extends State<CreateContractScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
-            if (_standardArticles.isNotEmpty) ...[
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Articles standards du contrat',
-                                  style: AppTheme.titleStyle.copyWith(fontSize: 18),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'Cliquez sur un article pour le voir et le modifier',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: Colors.grey[600],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      ..._standardArticles.asMap().entries.map((entry) {
-                        final index = entry.key;
-                        final article = entry.value;
-                        final isExpanded = article['isExpanded'] ?? false;
-                        final isModified = article['isModified'] ?? false;
-
-                        return Card(
-                          margin: const EdgeInsets.only(bottom: 12),
-                          color: isModified ? Colors.orange.shade50 : null,
-                          child: Column(
-                            children: [
-                              ListTile(
-                                leading: CircleAvatar(
-                                  backgroundColor: isModified
-                                      ? Colors.orange
-                                      : AppTheme.primaryColor,
-                                  child: Text(
-                                    '${index + 1}',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                                title: Text(
-                                  article['articleTitle'] ?? '',
-                                  style: const TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                subtitle: article['isMandatory'] == true
-                                    ? const Text(
-                                        'Obligatoire',
-                                        style: TextStyle(
-                                          color: Colors.red,
-                                          fontSize: 12,
-                                        ),
-                                      )
-                                    : null,
-                                trailing: Icon(
-                                  isExpanded ? Icons.expand_less : Icons.expand_more,
-                                ),
-                                onTap: () {
-                                  setState(() {
-                                    article['isExpanded'] = !isExpanded;
-                                  });
-                                },
-                              ),
-                              if (isExpanded)
-                                Padding(
-                                  padding: const EdgeInsets.all(16),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      if (isModified)
-                                        Container(
-                                          padding: const EdgeInsets.all(8),
-                                          margin: const EdgeInsets.only(bottom: 12),
-                                          decoration: BoxDecoration(
-                                            color: Colors.orange.shade100,
-                                            borderRadius: BorderRadius.circular(4),
-                                          ),
-                                          child: Row(
-                                            children: [
-                                              const Icon(
-                                                Icons.edit,
-                                                size: 16,
-                                                color: Colors.orange,
-                                              ),
-                                              const SizedBox(width: 8),
-                                              const Expanded(
-                                                child: Text(
-                                                  'Cet article a été modifié',
-                                                  style: TextStyle(
-                                                    fontSize: 12,
-                                                    color: Colors.orange,
-                                                    fontWeight: FontWeight.w500,
-                                                  ),
-                                                ),
-                                              ),
-                                              TextButton(
-                                                onPressed: () {
-                                                  setState(() {
-                                                    article['modifiedTitle'] = article['articleTitle'];
-                                                    article['modifiedContent'] = article['articleContent'];
-                                                    article['isModified'] = false;
-                                                  });
-                                                },
-                                                child: const Text(
-                                                  'Réinitialiser',
-                                                  style: TextStyle(fontSize: 12),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      TextField(
-                                        controller: TextEditingController(
-                                          text: article['modifiedTitle'] ?? article['articleTitle'],
-                                        ),
-                                        decoration: const InputDecoration(
-                                          labelText: 'Titre de l\'article',
-                                          border: OutlineInputBorder(),
-                                        ),
-                                        onChanged: (value) {
-                                          setState(() {
-                                            article['modifiedTitle'] = value;
-                                            article['isModified'] = true;
-                                          });
-                                        },
-                                      ),
-                                      const SizedBox(height: 12),
-                                      TextField(
-                                        controller: TextEditingController(
-                                          text: article['modifiedContent'] ?? article['articleContent'],
-                                        ),
-                                        decoration: const InputDecoration(
-                                          labelText: 'Contenu de l\'article',
-                                          border: OutlineInputBorder(),
-                                        ),
-                                        maxLines: 6,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            article['modifiedContent'] = value;
-                                            article['isModified'] = true;
-                                          });
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Sections personnalisées',
-                          style: AppTheme.titleStyle.copyWith(fontSize: 18),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.add_circle, color: AppTheme.primaryColor),
-                          onPressed: _addCustomSection,
-                        ),
-                      ],
-                    ),
-                    if (_customSections.isEmpty)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        child: Text(
-                          'Aucune section personnalisée.\nAppuyez sur + pour en ajouter.',
-                          style: TextStyle(color: Colors.grey[600]),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ..._customSections.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final section = entry.value;
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        child: Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: Column(
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    'Section ${index + 1}',
-                                    style: const TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.delete, color: Colors.red),
-                                    onPressed: () => _removeCustomSection(index),
-                                  ),
-                                ],
-                              ),
-                              TextField(
-                                decoration: const InputDecoration(
-                                  labelText: 'Titre',
-                                  border: OutlineInputBorder(),
-                                ),
-                                onChanged: (value) {
-                                  section['title'] = value;
-                                },
-                              ),
-                              const SizedBox(height: 8),
-                              TextField(
-                                decoration: const InputDecoration(
-                                  labelText: 'Contenu',
-                                  border: OutlineInputBorder(),
-                                ),
-                                maxLines: 3,
-                                onChanged: (value) {
-                                  section['content'] = value;
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ],
-                ),
-              ),
-            ),
             const SizedBox(height: 24),
             CustomButton(
-              text: 'Créer le contrat',
-              onPressed: _isLoading ? null : _createContract,
+              text: 'Enregistrer et créer un état de lieu d\'entrée',
+              onPressed: _isLoading ? null : _createContractAndNavigateToInventory,
               isLoading: _isLoading,
             ),
             const SizedBox(height: 16),
