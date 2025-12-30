@@ -105,7 +105,7 @@ public class TenantQuickCreateService {
                 password
         );
 
-        emailService.sendEmail(tenant.getEmail(), subject, body);
+        emailService.sendWelcomeEmail(tenant.getEmail(),tenant.getFname()+" "+tenant.getLname(),null,null, subject, body);
     }
 
     private ResidentDto convertToDto(Resident resident) {
@@ -116,9 +116,8 @@ public class TenantQuickCreateService {
                 .email(resident.getEmail())
                 .phoneNumber(resident.getPhoneNumber())
                 .picture(resident.getPicture())
-                .role(resident.getRole().name())
-                .accountStatus(resident.getAccountStatus().name())
-                .isEnabled(resident.getIsEnabled())
-                .build();
+                .role(resident.getRole() )
+                .accountStatus(resident.getAccountStatus() )
+                 .build();
     }
 }

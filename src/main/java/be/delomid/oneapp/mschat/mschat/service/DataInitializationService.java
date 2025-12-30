@@ -39,11 +39,11 @@ public class DataInitializationService implements CommandLineRunner {
     public void run(String... args) {
         log.info("Initializing application data...");
 
-     initializeCountries();
-       initializeSuperAdmin();
-      initializeTestData();
-        initFaqData();
-        initializeRoomTypes();
+//     initializeCountries();
+//       initializeSuperAdmin();
+//      initializeTestData();
+//        initFaqData();
+//        initializeRoomTypes();
 
         log.info("Application data initialization completed");
     }
