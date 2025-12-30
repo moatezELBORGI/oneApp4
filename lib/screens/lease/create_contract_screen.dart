@@ -4,6 +4,7 @@ import '../../providers/auth_provider.dart';
 import '../../services/lease_contract_service.dart';
 import '../../services/lease_contract_enhanced_service.dart';
 import '../../services/tenant_quick_create_service.dart';
+import '../../services/inventory_service.dart';
 import '../../utils/app_theme.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
@@ -27,6 +28,7 @@ class _CreateContractScreenState extends State<CreateContractScreen> {
   final LeaseContractService _contractService = LeaseContractService();
   final LeaseContractEnhancedService _enhancedService = LeaseContractEnhancedService();
   final TenantQuickCreateService _tenantQuickCreateService = TenantQuickCreateService();
+  final InventoryService _inventoryService = InventoryService();
 
   final _rentController = TextEditingController();
   final _depositController = TextEditingController();
@@ -139,6 +141,12 @@ class _CreateContractScreenState extends State<CreateContractScreen> {
         regionCode: _regionCode,
       );
 
+      final inventory = await _inventoryService.createInventory(
+        contractId: contract.id,
+        type: 'ENTREE',
+        inventoryDate: DateTime.now(),
+      );
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Contrat enregistré en brouillon')),
@@ -148,9 +156,7 @@ class _CreateContractScreenState extends State<CreateContractScreen> {
           context,
           MaterialPageRoute(
             builder: (context) => InventoryDetailScreen(
-              contractId: contract.id,
-              inventoryType: 'ENTREE',
-              isNewInventory: true,
+              inventoryId: inventory.id,
             ),
           ),
         );
