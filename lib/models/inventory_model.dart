@@ -57,9 +57,9 @@ class InventoryModel {
 
   factory InventoryModel.fromJson(Map<String, dynamic> json) {
     return InventoryModel(
-      id: json['id'],
-      contractId: json['contractId'],
-      type: json['type'],
+      id: json['id']?.toString() ?? '',
+      contractId: json['contractId']?.toString() ?? '',
+      type: json['type'] ?? '',
       inventoryDate: DateTime.parse(json['inventoryDate']),
       electricityMeterNumber: json['electricityMeterNumber'],
       electricityDayIndex: json['electricityDayIndex'] != null ? (json['electricityDayIndex'] as num).toDouble() : null,
@@ -74,7 +74,7 @@ class InventoryModel {
       keysCellar: json['keysCellar'] ?? 0,
       accessCards: json['accessCards'] ?? 0,
       parkingRemotes: json['parkingRemotes'] ?? 0,
-      status: json['status'],
+      status: json['status'] ?? 'DRAFT',
       ownerSignedAt: json['ownerSignedAt'] != null ? DateTime.parse(json['ownerSignedAt']) : null,
       tenantSignedAt: json['tenantSignedAt'] != null ? DateTime.parse(json['tenantSignedAt']) : null,
       ownerSignatureData: json['ownerSignatureData'],
