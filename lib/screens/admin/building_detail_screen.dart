@@ -4,6 +4,7 @@ import '../../services/building_admin_service.dart';
 import '../../models/building_photo_model.dart';
 import '../../utils/app_theme.dart';
 import 'add_resident_screen.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class BuildingDetailScreen extends StatefulWidget {
   final String buildingId;
@@ -66,23 +67,22 @@ class _BuildingDetailScreenState extends State<BuildingDetailScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Détails de l\'immeuble')),
-        body: const Center(child: CircularProgressIndicator()),
+      return const Scaffold(
+        appBar: CustomAppBar(title: 'Détails de l\'immeuble'),
+        body: Center(child: CircularProgressIndicator()),
       );
     }
 
     if (_buildingData == null) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Détails de l\'immeuble')),
-        body: const Center(child: Text('Immeuble introuvable')),
+      return const Scaffold(
+        appBar: CustomAppBar(title: 'Détails de l\'immeuble'),
+        body: Center(child: Text('Immeuble introuvable')),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_buildingData!['buildingLabel'] ?? 'Détails'),
-        elevation: 0,
+      appBar: CustomAppBar(
+        title: _buildingData!['buildingLabel'] ?? 'Détails',
       ),
       body: RefreshIndicator(
         onRefresh: _loadBuildingDetails,

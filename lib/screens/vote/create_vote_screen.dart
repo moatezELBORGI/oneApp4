@@ -5,6 +5,7 @@ import '../../utils/app_theme.dart';
 import '../../models/channel_model.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_button.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class CreateVoteScreen extends StatefulWidget {
   final Channel channel;
@@ -129,10 +130,8 @@ class _CreateVoteScreenState extends State<CreateVoteScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: const Text('Créer un vote'),
-        backgroundColor: Colors.white,
+      appBar: const CustomAppBar(
+        title: 'Créer un vote',
         elevation: 0,
       ),
       body: Form(
@@ -255,7 +254,7 @@ class _CreateVoteScreenState extends State<CreateVoteScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: ListTile(
-                  leading: const Icon(Icons.schedule, color: AppTheme.primaryColor),
+                  leading: const Icon(Icons.schedule, color: Colors.white),
                   title: const Text('Date de fin (optionnel)'),
                   subtitle: Text(
                     _endDate != null

@@ -5,6 +5,7 @@ import '../../utils/app_theme.dart';
 import '../../models/building_selection_model.dart';
 import '../../services/api_service.dart';
 import '../../services/building_context_service.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class BuildingSwitchScreen extends StatefulWidget {
   const BuildingSwitchScreen({super.key});
@@ -126,7 +127,6 @@ class _BuildingSwitchScreenState extends State<BuildingSwitchScreen> {
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
         title: const Text('Changer d\'immeuble'),
-        backgroundColor: Colors.white,
         elevation: 0,
       ),
       body: _buildBuildingsList(),

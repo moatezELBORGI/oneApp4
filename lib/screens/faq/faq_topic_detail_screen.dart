@@ -4,6 +4,7 @@ import 'package:mgi/models/faq_topic.dart';
 
 import '../../services/building_context_service.dart';
 import 'chatbot_screen.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class FAQTopicDetailScreen extends StatelessWidget {
   final FAQTopic topic;

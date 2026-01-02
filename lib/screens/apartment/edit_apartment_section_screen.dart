@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../models/apartment_details_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/apartment_details_service.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class EditApartmentScreen extends StatefulWidget {
   final String apartmentId;

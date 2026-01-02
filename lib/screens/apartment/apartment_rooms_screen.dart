@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/apartment_room_model.dart';
 import '../../services/apartment_room_service.dart';
 import 'add_room_screen.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class ApartmentRoomsScreen extends StatefulWidget {
   final String apartmentId;

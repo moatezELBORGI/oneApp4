@@ -7,6 +7,7 @@ import '../../utils/app_theme.dart';
 import '../../widgets/user_avatar.dart';
 import 'claim_detail_screen.dart';
 import 'create_claim_screen.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class ClaimsScreen extends StatefulWidget {
   const ClaimsScreen({Key? key}) : super(key: key);
@@ -59,13 +60,8 @@ class _ClaimsScreenState extends State<ClaimsScreen> with SingleTickerProviderSt
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        title: const Text(
-          'Sinistres',
-          style: TextStyle(fontWeight: FontWeight.w600),
-        ),
-        elevation: 0,
-        backgroundColor: Colors.white,
+      appBar: CustomAppBar(
+        title: 'Sinistres',
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 8.0),
@@ -74,7 +70,7 @@ class _ClaimsScreenState extends State<ClaimsScreen> with SingleTickerProviderSt
               icon: Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryColor,
+                  color: Colors.white.withOpacity(0.3),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(
@@ -88,10 +84,11 @@ class _ClaimsScreenState extends State<ClaimsScreen> with SingleTickerProviderSt
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
                   fontSize: 15,
+                  color: Colors.white,
                 ),
               ),
               style: TextButton.styleFrom(
-                foregroundColor: AppTheme.primaryColor,
+                foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               ),
             ),

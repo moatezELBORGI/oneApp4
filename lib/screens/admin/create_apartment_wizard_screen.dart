@@ -10,6 +10,7 @@ import '../../widgets/custom_text_field.dart';
 import '../../widgets/equipment_selector_widget.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import '../../widgets/custom_app_bar.dart';
 
 class CreateApartmentWizardScreen extends StatefulWidget {
   final String buildingId;
@@ -260,8 +261,8 @@ class _CreateApartmentWizardScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        title: const Text('Nouvel appartement'),
+      appBar: const CustomAppBar(
+        title: 'Nouvel appartement',
         elevation: 0,
         centerTitle: true,
       ),

@@ -3,6 +3,7 @@ import '../../models/folder_model.dart';
 import '../../models/building_members_model.dart';
 import '../../services/document_service.dart';
 import '../../utils/app_theme.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class FolderPermissionsScreen extends StatefulWidget {
   final FolderModel folder;
@@ -152,9 +153,8 @@ class _FolderPermissionsScreenState extends State<FolderPermissionsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Gérer les permissions'),
-        backgroundColor: Colors.white,
+      appBar: const CustomAppBar(
+        title: 'Gérer les permissions',
         elevation: 0,
         actions: [
           if (!_isLoading)

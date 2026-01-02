@@ -4,6 +4,7 @@ import 'package:mgi/models/faq_topic.dart';
 import 'package:mgi/services/building_context_service.dart';
 import 'package:mgi/providers/claim_provider.dart';
 import 'faq_topic_detail_screen.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class FAQHomeScreen extends StatefulWidget {
   const FAQHomeScreen({super.key});
@@ -32,8 +33,8 @@ class _FAQHomeScreenState extends State<FAQHomeScreen> {
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      appBar: AppBar(
-        title: const Text("FAQ & Assistance"),
+      appBar: const CustomAppBar(
+        title: 'FAQ & Assistance',
         elevation: 0,
         centerTitle: true,
       ),

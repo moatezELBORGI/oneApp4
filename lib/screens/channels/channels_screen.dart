@@ -6,6 +6,7 @@ import '../../services/building_context_service.dart';
 import '../../utils/app_theme.dart';
 import '../../models/channel_model.dart';
 import '../../widgets/building_context_indicator.dart';
+import '../../widgets/custom_app_bar.dart';
 import '../chat/chat_screen.dart';
 import 'create_channel_screen.dart';
 
@@ -120,18 +121,14 @@ class _ChannelsScreenState extends State<ChannelsScreen> with SingleTickerProvid
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
-      appBar: AppBar(
-        title: const Text('Canaux', style: AppTheme.titleStyle),
-        backgroundColor: AppTheme.surfaceColor,
-        elevation: 0,
+      appBar: CustomAppBar(
+        title: 'Canaux',
         actions: [
-          const BuildingContextIndicator(),
-          const SizedBox(width: 8),
           IconButton(
             onPressed: _handleCreateChannel,
             icon: const Icon(
               Icons.add_circle_outline,
-              color: AppTheme.primaryColor,
+              color: Colors.white,
             ),
             tooltip: 'Créer un canal',
           ),
@@ -140,20 +137,22 @@ class _ChannelsScreenState extends State<ChannelsScreen> with SingleTickerProvid
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
           child: Container(
-            color: AppTheme.surfaceColor,
+            color: AppTheme.primaryColor,
             child: TabBar(
               controller: _tabController,
-              labelColor: AppTheme.primaryColor,
-              unselectedLabelColor: AppTheme.textSecondary,
+              labelColor: Colors.white,
+              unselectedLabelColor: Colors.white70,
               labelStyle: AppTheme.subtitleStyle.copyWith(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
+                color: Colors.white,
               ),
               unselectedLabelStyle: AppTheme.subtitleStyle.copyWith(
                 fontSize: 15,
                 fontWeight: FontWeight.w500,
+                color: Colors.white70,
               ),
-              indicatorColor: AppTheme.primaryColor,
+              indicatorColor: Colors.white,
               indicatorWeight: 3,
               tabs: const [
                 Tab(text: 'Tous'),

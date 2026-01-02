@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/vote_provider.dart';
 import '../../utils/app_theme.dart';
+import '../../widgets/custom_app_bar.dart';
 import '../../models/channel_model.dart';
 import '../../models/vote_model.dart';
 import 'create_vote_screen.dart';
@@ -41,10 +42,8 @@ class _VoteScreenState extends State<VoteScreen> {
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
-      appBar: AppBar(
-        title: Text('Votes - ${widget.channel.name}'),
-        backgroundColor: Colors.white,
-        elevation: 0,
+      appBar: CustomAppBar(
+        title: 'Votes - ${widget.channel.name}',
         actions: [
           if (isAdmin)
             IconButton(
@@ -55,7 +54,7 @@ class _VoteScreenState extends State<VoteScreen> {
                   ),
                 );
               },
-              icon: const Icon(Icons.add),
+              icon: const Icon(Icons.add, color: Colors.white),
             ),
         ],
       ),

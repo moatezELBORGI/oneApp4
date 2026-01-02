@@ -7,6 +7,7 @@ import '../../utils/app_theme.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_button.dart';
 import '../../models/user_model.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class CreateChannelScreen extends StatefulWidget {
   const CreateChannelScreen({super.key});
@@ -224,10 +225,8 @@ class _CreateChannelScreenState extends State<CreateChannelScreen> {
         user?.role != 'GROUP_ADMIN' &&
         user?.role != 'SUPER_ADMIN') {
       return Scaffold(
-        backgroundColor: Colors.white,
-        appBar: AppBar(
-          title: const Text('Accès refusé'),
-          backgroundColor: Colors.white,
+        appBar: const CustomAppBar(
+        title: 'Accès refusé',
           elevation: 0,
         ),
         body: const Center(
@@ -261,10 +260,8 @@ class _CreateChannelScreenState extends State<CreateChannelScreen> {
     }
 
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: const Text('Créer un canal'),
-        backgroundColor: Colors.white,
+      appBar: const CustomAppBar(
+        title: 'Créer un canal',
         elevation: 0,
       ),
       body: Form(
@@ -325,7 +322,7 @@ class _CreateChannelScreenState extends State<CreateChannelScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: ListTile(
-                  leading: const Icon(Icons.person_add, color: AppTheme.primaryColor),
+                  leading: const Icon(Icons.person_add, color: Colors.white),
                   title: const Text('Ajouter des membres'),
                   subtitle: Text('${_selectedMembers.length} membre(s) sélectionné(s)'),
                   trailing: const Icon(Icons.chevron_right),

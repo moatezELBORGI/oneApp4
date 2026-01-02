@@ -5,6 +5,7 @@ import '../../utils/app_theme.dart';
 import '../../models/channel_model.dart';
 import '../../models/vote_model.dart';
 import '../../widgets/custom_button.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class VoteDetailScreen extends StatefulWidget {
   final Vote vote;
@@ -111,10 +112,8 @@ class _VoteDetailScreenState extends State<VoteDetailScreen> {
     final showResults = _currentVote.hasVoted || !_currentVote.isActive || isExpired;
 
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: const Text('Détails du vote'),
-        backgroundColor: Colors.white,
+      appBar: const CustomAppBar(
+        title: 'Détails du vote',
         elevation: 0,
         actions: [
           if (widget.isAdmin && _currentVote.isActive)

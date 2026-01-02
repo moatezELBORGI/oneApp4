@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../providers/claim_provider.dart';
 import '../../services/building_context_service.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class ChatbotScreen extends StatefulWidget {
   final String topicName;

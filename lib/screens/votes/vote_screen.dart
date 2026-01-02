@@ -7,6 +7,7 @@ import '../../models/channel_model.dart';
 import '../../models/vote_model.dart';
 import 'create_vote_screen.dart';
 import 'vote_detail_screen.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class VoteScreen extends StatefulWidget {
   final Channel channel;
@@ -43,7 +44,6 @@ class _VoteScreenState extends State<VoteScreen> {
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
         title: Text('Votes - ${widget.channel.name}'),
-        backgroundColor: Colors.white,
         elevation: 0,
         actions: [
           if (isAdmin)

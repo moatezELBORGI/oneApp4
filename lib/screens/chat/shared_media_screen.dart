@@ -4,6 +4,7 @@ import '../../models/shared_media_model.dart';
 import '../../services/shared_media_service.dart';
 import '../../utils/constants.dart';
 import 'package:intl/intl.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class SharedMediaScreen extends StatefulWidget {
   final int channelId;

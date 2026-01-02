@@ -8,6 +8,7 @@ import '../../services/storage_service.dart';
 import '../../utils/app_theme.dart';
 import '../../widgets/user_avatar.dart';
 import '../chat/chat_screen.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class ClaimDetailScreen extends StatefulWidget {
   final int claimId;
@@ -113,14 +114,16 @@ class _ClaimDetailScreenState extends State<ClaimDetailScreen> {
 
     if (claimProvider.isLoading) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Détails du sinistre')),
+        appBar: const CustomAppBar(
+        title: 'Détails du sinistre'),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     if (claimProvider.selectedClaim == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Détails du sinistre')),
+        appBar: const CustomAppBar(
+        title: 'Détails du sinistre'),
         body: const Center(child: Text('Sinistre non trouvé')),
       );
     }
@@ -128,8 +131,8 @@ class _ClaimDetailScreenState extends State<ClaimDetailScreen> {
     final claim = claimProvider.selectedClaim!;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Détails du sinistre'),
+      appBar: const CustomAppBar(
+        title: 'Détails du sinistre',
         elevation: 0,
         actions: [
           if (_isAdmin)

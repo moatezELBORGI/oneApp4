@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/room_type_model.dart';
 import '../../services/apartment_room_service.dart';
 import '../../widgets/equipment_selector_widget.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class AddRoomScreen extends StatefulWidget {
   final String apartmentId;
@@ -107,8 +108,8 @@ class _AddRoomScreenState extends State<AddRoomScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Ajouter une pièce'),
+      appBar: const CustomAppBar(
+        title: 'Ajouter une pièce',
         elevation: 0,
       ),
       body: _isLoading

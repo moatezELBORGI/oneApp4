@@ -6,6 +6,7 @@ import '../../services/api_service.dart';
 import '../../providers/notification_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/app_theme.dart';
+import '../../widgets/custom_app_bar.dart';
 import '../channels/channels_screen.dart';
 import '../votes/vote_screen.dart';
 import '../files/files_screen.dart';
@@ -180,10 +181,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Notifications'),
-        backgroundColor: AppTheme.primaryColor,
-        foregroundColor: Colors.white,
+      appBar: CustomAppBar(
+        title: 'Notifications',
         actions: [
           if (_notifications.any((n) => !n.isRead))
             TextButton.icon(
@@ -191,7 +190,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               icon: const Icon(Icons.done_all, color: Colors.white),
               label: const Text(
                 'Tout marquer comme lu',
-                style: TextStyle(color: Colors.white),
+                style: TextStyle(color: Colors.white, fontSize: 13),
               ),
             ),
         ],

@@ -6,6 +6,7 @@ import '../../providers/auth_provider.dart';
 import '../../services/profile_service.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/constants.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class ProfileEditScreen extends StatefulWidget {
   const ProfileEditScreen({super.key});
@@ -295,9 +296,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
-      appBar: AppBar(
-        title: const Text('Modifier le profil'),
-        backgroundColor: Colors.white,
+      appBar: const CustomAppBar(
+        title: 'Modifier le profil',
         elevation: 0,
         actions: [
           if (_isLoading)

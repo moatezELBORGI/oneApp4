@@ -3,6 +3,7 @@ import '../../services/building_admin_service.dart';
 import '../../utils/app_theme.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class AddResidentScreen extends StatefulWidget {
   final String apartmentId;
@@ -82,8 +83,8 @@ class _AddResidentScreenState extends State<AddResidentScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Ajouter un résident'),
+      appBar: const CustomAppBar(
+        title: 'Ajouter un résident',
         elevation: 0,
       ),
       body: SingleChildScrollView(

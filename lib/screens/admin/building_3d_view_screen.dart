@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import '../../utils/app_theme.dart';
 import '../../widgets/custom_button.dart';
 import 'add_resident_screen.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class Building3DViewScreen extends StatefulWidget {
   final String buildingId;

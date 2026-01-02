@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../services/building_admin_service.dart';
 import '../../utils/app_theme.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class CreateBuildingScreen extends StatefulWidget {
   const CreateBuildingScreen({super.key});
@@ -178,8 +179,8 @@ class _CreateBuildingScreenState extends State<CreateBuildingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Ajouter un immeuble'),
+      appBar: const CustomAppBar(
+        title: 'Ajouter un immeuble',
         elevation: 0,
       ),
       body: Form(

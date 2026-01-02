@@ -4,6 +4,7 @@ import '../../models/lease_contract_model.dart';
 import '../../services/lease_contract_service.dart';
 import '../../utils/app_theme.dart';
 import '../../widgets/signature_pad_widget.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class LeaseContractDetailScreen extends StatefulWidget {
   final String contractId;
@@ -124,10 +125,9 @@ class _LeaseContractDetailScreenState extends State<LeaseContractDetailScreen> {
     if (_contract == null) {
       return Scaffold(
         backgroundColor: AppTheme.backgroundColor,
-        appBar: AppBar(
-          title: const Text('Détails du Contrat'),
-          backgroundColor: Colors.white,
-        ),
+        appBar: const CustomAppBar(
+        title: 'Détails du Contrat',
+          ),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,

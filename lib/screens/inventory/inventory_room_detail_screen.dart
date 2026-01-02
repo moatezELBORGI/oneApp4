@@ -11,6 +11,7 @@ import '../../models/inventory_model.dart';
 import '../../services/inventory_service.dart';
 import '../../services/storage_service.dart';
 import '../../utils/constants.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class InventoryRoomDetailScreen extends StatefulWidget {
   final String inventoryId;

@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../utils/constants.dart';
 import '../../services/storage_service.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class InventoryDetailScreen extends StatefulWidget {
   final String inventoryId;
@@ -866,9 +867,8 @@ class _InventoryDetailScreenState extends State<InventoryDetailScreen> with Sing
     if (_inventory == null) {
       return Scaffold(
         backgroundColor: const Color(0xFFF5F5F5),
-        appBar: AppBar(
-          title: const Text('État des Lieux'),
-          backgroundColor: Colors.white,
+        appBar: const CustomAppBar(
+        title: 'État des Lieux',
           elevation: 0,
         ),
         body: Center(
@@ -909,7 +909,6 @@ class _InventoryDetailScreenState extends State<InventoryDetailScreen> with Sing
             ),
           ],
         ),
-        backgroundColor: Colors.white,
         elevation: 0,
         actions: [
           Container(

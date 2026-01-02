@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/building_members_model.dart';
 import '../../services/building_admin_service.dart';
 import '../../utils/app_theme.dart';
+import '../../widgets/custom_app_bar.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 import '../property/property_detail_screen.dart';
@@ -152,9 +153,8 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Ajouter un appartement'),
-        elevation: 0,
+      appBar: const CustomAppBar(
+        title: 'Ajouter un appartement',
       ),
       body: Form(
         key: _formKey,

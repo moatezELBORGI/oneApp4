@@ -4,6 +4,7 @@ import '../../models/lease_contract_model.dart';
 import '../../services/inventory_service.dart';
 import '../../services/lease_contract_service.dart';
 import 'inventory_detail_screen.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class InventoriesScreen extends StatefulWidget {
   const InventoriesScreen({Key? key}) : super(key: key);
@@ -164,10 +165,9 @@ class _InventoriesScreenState extends State<InventoriesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
-      appBar: AppBar(
-        title: const Text('États des lieux'),
+      appBar: const CustomAppBar(
+        title: 'États des lieux',
         elevation: 0,
-        backgroundColor: Colors.white,
         foregroundColor: Colors.black87,
         actions: [
           if (!_isLoading)

@@ -7,6 +7,7 @@ import '../../models/apartment_room_complete_model.dart';
 import '../../services/apartment_management_service.dart';
 import '../../services/apartment_room_service.dart';
 import '../../utils/app_theme.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class PropertyDetailsEditableScreen extends StatefulWidget {
   final String apartmentId;
@@ -357,7 +358,7 @@ class _PropertyDetailsEditableScreenState
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ExpansionTile(
         initiallyExpanded: true,
-        leading: const Icon(Icons.info_outline, color: AppTheme.primaryColor),
+        leading: const Icon(Icons.info_outline, color: Colors.white),
         title: const Text(
           'Informations de base',
           style: TextStyle(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/lease_contract_model.dart';
 import '../../services/lease_contract_service.dart';
 import 'lease_contract_detail_screen.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class LeaseContractsScreen extends StatefulWidget {
   const LeaseContractsScreen({Key? key}) : super(key: key);
@@ -76,9 +77,8 @@ class _LeaseContractsScreenState extends State<LeaseContractsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mes Contrats de Bail'),
-        elevation: 0,
+      appBar: const CustomAppBar(
+        title: 'Mes Contrats de Bail',
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())

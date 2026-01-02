@@ -9,6 +9,7 @@ import '../../services/apartment_details_service.dart';
 import '../../services/apartment_management_service.dart';
 import '../apartment/edit_apartment_section_screen.dart';
 import '../apartment/apartment_rooms_screen.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class PropertyDetailScreen extends StatefulWidget {
   final String apartmentId;

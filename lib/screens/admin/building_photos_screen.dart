@@ -4,6 +4,7 @@ import '../../services/building_admin_service.dart';
 import '../../utils/app_theme.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class BuildingPhotosScreen extends StatefulWidget {
   final String buildingId;

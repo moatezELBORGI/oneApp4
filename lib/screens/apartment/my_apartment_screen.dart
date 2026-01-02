@@ -10,6 +10,7 @@ import '../../models/apartment_room_complete_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/apartment_details_service.dart';
 import '../../services/apartment_management_service.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class MyApartmentScreen extends StatefulWidget {
   final String apartmentId;
@@ -209,8 +210,8 @@ class _MyApartmentScreenState extends State<MyApartmentScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mon Appartement'),
+      appBar: const CustomAppBar(
+        title: 'Mon Appartement',
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
         actions: [

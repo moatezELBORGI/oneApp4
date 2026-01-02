@@ -12,6 +12,7 @@ import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/user_avatar.dart';
 import '../inventory/inventory_detail_screen.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class CreateContractScreen extends StatefulWidget {
   final String apartmentId;
@@ -392,9 +393,8 @@ class _CreateContractScreenState extends State<CreateContractScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
-      appBar: AppBar(
-        title: const Text('Nouveau contrat de bail'),
-        backgroundColor: Colors.white,
+      appBar: const CustomAppBar(
+        title: 'Nouveau contrat de bail',
         elevation: 0,
       ),
       body: Form(

@@ -8,6 +8,7 @@ import 'building_3d_view_screen.dart';
 import 'building_photos_screen.dart';
 import 'create_building_screen.dart';
 import 'building_detail_screen.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class AdminBuildingScreen extends StatefulWidget {
   const AdminBuildingScreen({super.key});
@@ -140,7 +141,6 @@ class _AdminBuildingScreenState extends State<AdminBuildingScreen> with SingleTi
         backgroundColor: AppTheme.backgroundColor,
         appBar: AppBar(
           title: const Text('Gestion Immeuble', style: AppTheme.titleStyle),
-          backgroundColor: AppTheme.surfaceColor,
           elevation: 0,
         ),
         body: Center(

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/constants.dart';
+import '../../widgets/custom_app_bar.dart';
 import 'building_switch_screen.dart';
 import 'profile_edit_screen.dart';
 
@@ -13,10 +14,8 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
-      appBar: AppBar(
-        title: const Text('Paramètres'),
-        backgroundColor: Colors.white,
-        elevation: 0,
+      appBar: const CustomAppBar(
+        title: 'Paramètres',
       ),
       body: SingleChildScrollView(
         child: Column(

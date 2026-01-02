@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../providers/document_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/app_theme.dart';
+import '../../widgets/custom_app_bar.dart';
 import '../../models/folder_model.dart';
 import '../../models/document_model.dart';
 import '../../services/document_service.dart';
@@ -56,28 +57,11 @@ class _FilesScreenState extends State<FilesScreen> {
   }
 
   PreferredSizeWidget _buildAppBar(DocumentProvider documentProvider) {
-    return AppBar(
-      title: Row(
-        children: [
-          const Icon(Icons.folder_open, size: 24),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              documentProvider.currentFolder?.name ?? 'Mes Documents',
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 18,
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
-      backgroundColor: Colors.white,
-      elevation: 0,
+    return CustomAppBar(
+      title: documentProvider.currentFolder?.name ?? 'Mes Documents',
       leading: documentProvider.canGoBack
           ? IconButton(
-              icon: const Icon(Icons.arrow_back),
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
               onPressed: () {
                 documentProvider.goBack();
               },
@@ -85,7 +69,7 @@ class _FilesScreenState extends State<FilesScreen> {
           : null,
       actions: [
         IconButton(
-          icon: Icon(_isGridView ? Icons.view_list : Icons.grid_view),
+          icon: Icon(_isGridView ? Icons.view_list : Icons.grid_view, color: Colors.white),
           onPressed: () {
             setState(() {
               _isGridView = !_isGridView;
@@ -93,13 +77,13 @@ class _FilesScreenState extends State<FilesScreen> {
           },
         ),
         IconButton(
-          icon: const Icon(Icons.search),
+          icon: const Icon(Icons.search, color: Colors.white),
           onPressed: () {
             _showSearchDialog(documentProvider);
           },
         ),
         IconButton(
-          icon: const Icon(Icons.refresh),
+          icon: const Icon(Icons.refresh, color: Colors.white),
           onPressed: () {
             documentProvider.refresh();
           },
@@ -1249,7 +1233,7 @@ class _FilesScreenState extends State<FilesScreen> {
       builder: (context) => AlertDialog(
         title: Row(
           children: [
-            Icon(Icons.folder, color: AppTheme.primaryColor),
+            Icon(Icons.folder, color: Colors.white),
             const SizedBox(width: 12),
             Expanded(
               child: Text(

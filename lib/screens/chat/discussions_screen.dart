@@ -4,6 +4,7 @@ import '../../providers/channel_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/building_context_service.dart';
 import '../../widgets/building_context_indicator.dart';
+import '../../widgets/custom_app_bar.dart';
 import '../../utils/app_theme.dart';
 import '../../models/channel_model.dart';
 import 'chat_screen.dart';
@@ -74,13 +75,9 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
-      appBar: AppBar(
-        title: const Text('Discussions', style: AppTheme.titleStyle),
-        backgroundColor: AppTheme.surfaceColor,
-        elevation: 0,
+      appBar: CustomAppBar(
+        title: 'Discussions',
         actions: [
-          const BuildingContextIndicator(),
-          const SizedBox(width: 8),
           IconButton(
             onPressed: () {
               Navigator.of(context).push(
@@ -91,7 +88,7 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
             },
             icon: const Icon(
               Icons.add_comment_outlined,
-              color: AppTheme.primaryColor,
+              color: Colors.white,
             ),
             tooltip: 'Nouvelle discussion',
           ),

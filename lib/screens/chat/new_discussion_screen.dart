@@ -6,6 +6,7 @@ import '../../services/building_context_service.dart';
 import '../../utils/app_theme.dart';
 import '../../models/user_model.dart';
 import 'chat_screen.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class NewDiscussionScreen extends StatefulWidget {
   const NewDiscussionScreen({super.key});
@@ -119,7 +120,6 @@ class _NewDiscussionScreenState extends State<NewDiscussionScreen> {
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
         title: const Text('Nouvelle discussion', style: AppTheme.titleStyle),
-        backgroundColor: AppTheme.surfaceColor,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary),

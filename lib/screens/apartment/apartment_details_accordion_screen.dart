@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/apartment_complete_model.dart';
 import '../../services/apartment_management_service.dart';
 import '../../services/api_service.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class ApartmentDetailsAccordionScreen extends StatefulWidget {
   final String apartmentId;
@@ -51,8 +52,8 @@ class _ApartmentDetailsAccordionScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mon appartement'),
+      appBar: const CustomAppBar(
+        title: 'Mon appartement',
         elevation: 0,
       ),
       body: _isLoading
