@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/lease_contract_service.dart';
 import '../../services/lease_contract_enhanced_service.dart';
@@ -47,6 +49,9 @@ class _CreateContractScreenState extends State<CreateContractScreen> {
   List<Map<String, dynamic>> _customSections = [];
   bool _showUsersList = false;
 
+  Timer? _debounce;
+  final DateFormat _dateFormat = DateFormat('dd/MM/yyyy');
+
   @override
   void initState() {
     super.initState();
@@ -60,6 +65,7 @@ class _CreateContractScreenState extends State<CreateContractScreen> {
     _depositController.dispose();
     _chargesController.dispose();
     _searchController.dispose();
+    _debounce?.cancel();
     super.dispose();
   }
 
@@ -74,9 +80,7 @@ class _CreateContractScreenState extends State<CreateContractScreen> {
     } catch (e) {
       setState(() => _loadingUsers = false);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e')),
-        );
+        _showErrorSnackBar('Erreur lors du chargement des utilisateurs: $e');
       }
     }
   }
@@ -97,25 +101,37 @@ class _CreateContractScreenState extends State<CreateContractScreen> {
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur lors du chargement des articles: $e')),
-        );
+        _showErrorSnackBar('Erreur lors du chargement des articles: $e');
       }
     }
   }
 
+  void _onSearchChanged(String value) {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      setState(() => _showUsersList = value.isNotEmpty);
+      _loadNonResidentUsers(search: value);
+    });
+  }
+
   Future<void> _createContractAndNavigateToInventory() async {
     if (!_formKey.currentState!.validate()) return;
+
+    // Validation groupée
+    final validationErrors = <String>[];
     if (_startDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Veuillez sélectionner une date de début')),
-      );
-      return;
+      validationErrors.add('Veuillez sélectionner une date de début');
     }
     if (_selectedTenant == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Veuillez sélectionner un locataire')),
-      );
+      validationErrors.add('Veuillez sélectionner un locataire');
+    }
+    if (_endDate != null && _endDate!.isBefore(_startDate!)) {
+      validationErrors.add('La date de fin doit être après la date de début');
+    }
+
+    if (validationErrors.isNotEmpty) {
+      _showValidationErrors(validationErrors);
       return;
     }
 
@@ -125,9 +141,13 @@ class _CreateContractScreenState extends State<CreateContractScreen> {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final ownerId = authProvider.user?.id;
 
+      if (ownerId == null) {
+        throw Exception('Utilisateur non connecté');
+      }
+
       final contract = await _contractService.createContract(
         apartmentId: widget.apartmentId,
-        ownerId: ownerId!,
+        ownerId: ownerId,
         tenantId: _selectedTenant!['idUsers'],
         startDate: _startDate!,
         endDate: _endDate,
@@ -148,9 +168,7 @@ class _CreateContractScreenState extends State<CreateContractScreen> {
       );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Contrat enregistré en brouillon')),
-        );
+        _showSuccessSnackBar('Contrat enregistré en brouillon');
 
         Navigator.pushReplacement(
           context,
@@ -163,9 +181,7 @@ class _CreateContractScreenState extends State<CreateContractScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e')),
-        );
+        _showErrorSnackBar('Erreur lors de la création du contrat: $e');
       }
     } finally {
       if (mounted) {
@@ -180,130 +196,196 @@ class _CreateContractScreenState extends State<CreateContractScreen> {
     final emailController = TextEditingController();
     final phoneController = TextEditingController();
     final formKey = GlobalKey<FormState>();
+    bool isCreating = false;
 
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: const Text('Créer un nouveau locataire'),
-          content: SingleChildScrollView(
-            child: Form(
-              key: formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CustomTextField(
-                    controller: fnameController,
-                    label: 'Prénom',
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Le prénom est obligatoire';
-                      }
-                      return null;
-                    },
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Créer un nouveau locataire'),
+              content: SingleChildScrollView(
+                child: Form(
+                  key: formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CustomTextField(
+                        controller: fnameController,
+                        label: 'Prénom',
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Le prénom est obligatoire';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      CustomTextField(
+                        controller: lnameController,
+                        label: 'Nom',
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Le nom est obligatoire';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      CustomTextField(
+                        controller: emailController,
+                        label: 'Email',
+                        keyboardType: TextInputType.emailAddress,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'L\'email est obligatoire';
+                          }
+                          if (!value.contains('@') || !value.contains('.')) {
+                            return 'Email invalide';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      CustomTextField(
+                        controller: phoneController,
+                        label: 'Téléphone',
+                        keyboardType: TextInputType.phone,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Le téléphone est obligatoire';
+                          }
+                          return null;
+                        },
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 16),
-                  CustomTextField(
-                    controller: lnameController,
-                    label: 'Nom',
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Le nom est obligatoire';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  CustomTextField(
-                    controller: emailController,
-                    label: 'Email',
-                    keyboardType: TextInputType.emailAddress,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'L\'email est obligatoire';
-                      }
-                      if (!value.contains('@')) {
-                        return 'Email invalide';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  CustomTextField(
-                    controller: phoneController,
-                    label: 'Téléphone',
-                    keyboardType: TextInputType.phone,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Le téléphone est obligatoire';
-                      }
-                      return null;
-                    },
-                  ),
-                ],
+                ),
               ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Annuler'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                if (formKey.currentState!.validate()) {
-                  try {
-                    final newTenant = await _tenantQuickCreateService.createTenantQuick(
-                      fname: fnameController.text.trim(),
-                      lname: lnameController.text.trim(),
-                      email: emailController.text.trim(),
-                      phoneNumber: phoneController.text.trim(),
-                    );
+              actions: [
+                TextButton(
+                  onPressed: isCreating ? null : () => Navigator.pop(context),
+                  child: const Text('Annuler'),
+                ),
+                ElevatedButton(
+                  onPressed: isCreating ? null : () async {
+                    if (formKey.currentState!.validate()) {
+                      setDialogState(() => isCreating = true);
+                      try {
+                        final newTenant = await _tenantQuickCreateService.createTenantQuick(
+                          fname: fnameController.text.trim(),
+                          lname: lnameController.text.trim(),
+                          email: emailController.text.trim(),
+                          phoneNumber: phoneController.text.trim(),
+                        );
 
-                    if (mounted) {
-                      Navigator.pop(context);
-                      setState(() {
-                        _selectedTenant = newTenant;
-                        _searchController.text = '${newTenant['fname']} ${newTenant['lname']}';
-                        _showUsersList = false;
-                      });
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Locataire créé avec succès. Un email de bienvenue a été envoyé.'),
-                        ),
-                      );
-                      _loadNonResidentUsers();
+                        if (mounted) {
+                          Navigator.pop(context);
+                          setState(() {
+                            _selectedTenant = newTenant;
+                            _searchController.text = '${newTenant['fname']} ${newTenant['lname']}';
+                            _showUsersList = false;
+                          });
+                          _showSuccessSnackBar('Locataire créé avec succès. Un email de bienvenue a été envoyé.');
+                          _loadNonResidentUsers();
+                        }
+                      } catch (e) {
+                        setDialogState(() => isCreating = false);
+                        if (mounted) {
+                          _showErrorSnackBar('Erreur lors de la création: $e');
+                        }
+                      }
                     }
-                  } catch (e) {
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Erreur: $e')),
-                      );
-                    }
-                  }
-                }
-              },
-              child: const Text('Créer'),
-            ),
-          ],
+                  },
+                  child: isCreating
+                      ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                      : const Text('Créer'),
+                ),
+              ],
+            );
+          },
         );
       },
     );
   }
 
-  void _addCustomSection() {
-    setState(() {
-      _customSections.add({
-        'title': '',
-        'content': '',
-      });
-    });
+  void _showValidationErrors(List<String> errors) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: errors.map((e) => Padding(
+            padding: const EdgeInsets.symmetric(vertical: 2),
+            child: Text('• $e'),
+          )).toList(),
+        ),
+        backgroundColor: Colors.red.shade700,
+        duration: const Duration(seconds: 4),
+      ),
+    );
   }
 
-  void _removeCustomSection(int index) {
-    setState(() {
-      _customSections.removeAt(index);
-    });
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red.shade700,
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
+  void _showSuccessSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.green.shade700,
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
+  Future<void> _selectDate({
+    required bool isStartDate,
+  }) async {
+    final initialDate = isStartDate
+        ? (_startDate ?? DateTime.now())
+        : (_endDate ?? _startDate?.add(const Duration(days: 365)) ?? DateTime.now().add(const Duration(days: 365)));
+
+    final firstDate = isStartDate
+        ? DateTime.now()
+        : (_startDate ?? DateTime.now());
+
+    final date = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: firstDate,
+      lastDate: DateTime.now().add(const Duration(days: 365 * 20)),
+      locale: const Locale('fr', 'FR'),
+      helpText: isStartDate ? 'Sélectionner la date de début' : 'Sélectionner la date de fin',
+      cancelText: 'Annuler',
+      confirmText: 'OK',
+    );
+
+    if (date != null) {
+      setState(() {
+        if (isStartDate) {
+          _startDate = date;
+          // Si la date de fin existe et est avant la nouvelle date de début, on la réinitialise
+          if (_endDate != null && _endDate!.isBefore(date)) {
+            _endDate = null;
+          }
+        } else {
+          _endDate = date;
+        }
+      });
+    }
   }
 
   @override
@@ -317,28 +399,33 @@ class _CreateContractScreenState extends State<CreateContractScreen> {
       ),
       body: Form(
         key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
+        child: Stack(
           children: [
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Informations du locataire',
-                      style: AppTheme.titleStyle.copyWith(fontSize: 18),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: _searchController,
-                      decoration: InputDecoration(
-                        labelText: 'Rechercher un utilisateur',
-                        hintText: 'Nom, prénom ou email',
-                        prefixIcon: const Icon(Icons.search),
-                        suffixIcon: _searchController.text.isNotEmpty
-                            ? IconButton(
+            ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                // Section Locataire
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Informations du locataire',
+                          style: AppTheme.titleStyle.copyWith(fontSize: 18),
+                        ),
+                        const SizedBox(height: 16),
+                        Semantics(
+                          label: 'Rechercher un locataire',
+                          child: TextField(
+                            controller: _searchController,
+                            decoration: InputDecoration(
+                              labelText: 'Rechercher un utilisateur',
+                              hintText: 'Nom, prénom ou email',
+                              prefixIcon: const Icon(Icons.search),
+                              suffixIcon: _searchController.text.isNotEmpty
+                                  ? IconButton(
                                 icon: const Icon(Icons.clear),
                                 onPressed: () {
                                   setState(() {
@@ -348,252 +435,303 @@ class _CreateContractScreenState extends State<CreateContractScreen> {
                                   _loadNonResidentUsers();
                                 },
                               )
-                            : null,
-                        border: const OutlineInputBorder(),
-                      ),
-                      onChanged: (value) {
-                        setState(() => _showUsersList = value.isNotEmpty);
-                        _loadNonResidentUsers(search: value);
-                      },
-                      onTap: () {
-                        setState(() => _showUsersList = true);
-                      },
-                    ),
-                    const SizedBox(height: 8),
-                    GestureDetector(
-                      onTap: _showCreateTenantDialog,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: Row(
-                          children: [
-                            Icon(Icons.add_circle_outline, size: 16, color: AppTheme.primaryColor),
-                            const SizedBox(width: 4),
-                            Text(
-                              'Utilisateur non trouvé ?',
-                              style: TextStyle(
-                                color: AppTheme.primaryColor,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                decoration: TextDecoration.underline,
-                              ),
+                                  : null,
+                              border: const OutlineInputBorder(),
                             ),
-                          ],
+                            onChanged: _onSearchChanged,
+                            onTap: () {
+                              if (_searchController.text.isNotEmpty) {
+                                setState(() => _showUsersList = true);
+                              }
+                            },
+                          ),
                         ),
-                      ),
-                    ),
-                    if (_showUsersList && !_loadingUsers) ...[
-                      const SizedBox(height: 8),
-                      Container(
-                        constraints: const BoxConstraints(maxHeight: 200),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey.shade300),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: _nonResidentUsers.isEmpty
-                            ? const Padding(
-                                padding: EdgeInsets.all(16),
-                                child: Text(
-                                  'Aucun utilisateur trouvé',
-                                  style: TextStyle(color: Colors.grey),
-                                ),
-                              )
-                            : ListView.builder(
-                                shrinkWrap: true,
-                                itemCount: _nonResidentUsers.length,
-                                itemBuilder: (context, index) {
-                                  final user = _nonResidentUsers[index];
-                                  return ListTile(
-                                    leading: UserAvatar(
-                                      profilePictureUrl: user['picture'],
-                                      lastName: '${user['fname']} ${user['lname']}',
-                                      radius: 20, firstName: '',
-                                    ),
-                                    title: Text('${user['fname']} ${user['lname']}'),
-                                    subtitle: Text(user['email'] ?? ''),
-                                    onTap: () {
-                                      setState(() {
-                                        _selectedTenant = user;
-                                        _searchController.text = '${user['fname']} ${user['lname']}';
-                                        _showUsersList = false;
-                                      });
-                                    },
-                                  );
-                                },
-                              ),
-                      ),
-                    ],
-                    if (_loadingUsers) ...[
-                      const SizedBox(height: 16),
-                      const Center(child: CircularProgressIndicator()),
-                    ],
-                    if (_selectedTenant != null) ...[
-                      const SizedBox(height: 16),
-                      const Divider(),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Locataire sélectionné',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.shade50,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.blue.shade200),
-                        ),
-                        child: Row(
-                          children: [
-                            UserAvatar(
-                              profilePictureUrl: _selectedTenant!['picture'],
-                              lastName: '${_selectedTenant!['fname']} ${_selectedTenant!['lname']}',
-                              radius: 25, firstName: '',
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    '${_selectedTenant!['fname']} ${_selectedTenant!['lname']}',
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                        const SizedBox(height: 8),
+                        InkWell(
+                          onTap: _showCreateTenantDialog,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            child: Row(
+                              children: [
+                                Icon(Icons.add_circle_outline, size: 16, color: AppTheme.primaryColor),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Utilisateur non trouvé ? Créer un nouveau locataire',
+                                  style: TextStyle(
+                                    color: AppTheme.primaryColor,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    decoration: TextDecoration.underline,
                                   ),
-                                  if (_selectedTenant!['email'] != null)
-                                    Text(
-                                      _selectedTenant!['email'],
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.grey[700],
-                                      ),
-                                    ),
-                                  if (_selectedTenant!['phoneNumber'] != null)
-                                    Text(
-                                      _selectedTenant!['phoneNumber'],
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.grey[700],
-                                      ),
-                                    ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
-                            IconButton(
-                              icon: const Icon(Icons.close, color: Colors.red),
-                              onPressed: () {
-                                setState(() {
-                                  _selectedTenant = null;
-                                  _searchController.clear();
-                                });
+                          ),
+                        ),
+                        if (_showUsersList && !_loadingUsers) ...[
+                          const SizedBox(height: 8),
+                          Container(
+                            constraints: const BoxConstraints(maxHeight: 200),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey.shade300),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: _nonResidentUsers.isEmpty
+                                ? const Padding(
+                              padding: EdgeInsets.all(16),
+                              child: Text(
+                                'Aucun utilisateur trouvé',
+                                style: TextStyle(color: Colors.grey),
+                              ),
+                            )
+                                : ListView.builder(
+                              shrinkWrap: true,
+                              itemCount: _nonResidentUsers.length,
+                              itemBuilder: (context, index) {
+                                final user = _nonResidentUsers[index];
+                                return ListTile(
+                                  leading: UserAvatar(
+                                    profilePictureUrl: user['picture'],
+                                    lastName: '${user['fname']} ${user['lname']}',
+                                    radius: 20,
+                                    firstName: '',
+                                  ),
+                                  title: Text('${user['fname']} ${user['lname']}'),
+                                  subtitle: Text(user['email'] ?? ''),
+                                  onTap: () {
+                                    setState(() {
+                                      _selectedTenant = user;
+                                      _searchController.text = '${user['fname']} ${user['lname']}';
+                                      _showUsersList = false;
+                                    });
+                                  },
+                                );
                               },
                             ),
-                          ],
+                          ),
+                        ],
+                        if (_loadingUsers) ...[
+                          const SizedBox(height: 16),
+                          const Center(child: CircularProgressIndicator()),
+                        ],
+                        if (_selectedTenant != null) ...[
+                          const SizedBox(height: 16),
+                          const Divider(),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Locataire sélectionné',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.shade50,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.blue.shade200),
+                            ),
+                            child: Row(
+                              children: [
+                                UserAvatar(
+                                  profilePictureUrl: _selectedTenant!['picture'],
+                                  lastName: '${_selectedTenant!['fname']} ${_selectedTenant!['lname']}',
+                                  radius: 25,
+                                  firstName: '',
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        '${_selectedTenant!['fname']} ${_selectedTenant!['lname']}',
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      if (_selectedTenant!['email'] != null)
+                                        Text(
+                                          _selectedTenant!['email'],
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.grey[700],
+                                          ),
+                                        ),
+                                      if (_selectedTenant!['phoneNumber'] != null)
+                                        Text(
+                                          _selectedTenant!['phoneNumber'],
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.grey[700],
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.close, color: Colors.red),
+                                  onPressed: () {
+                                    setState(() {
+                                      _selectedTenant = null;
+                                      _searchController.clear();
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Section Détails du contrat
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Détails du contrat',
+                          style: AppTheme.titleStyle.copyWith(fontSize: 18),
                         ),
-                      ),
-                    ],
-                  ],
+                        const SizedBox(height: 16),
+                        ListTile(
+                          title: const Text('Date de début *'),
+                          subtitle: Text(
+                            _startDate != null
+                                ? _dateFormat.format(_startDate!)
+                                : 'Non définie',
+                            style: TextStyle(
+                              color: _startDate != null ? Colors.black87 : Colors.red,
+                              fontWeight: _startDate != null ? FontWeight.normal : FontWeight.w500,
+                            ),
+                          ),
+                          trailing: const Icon(Icons.calendar_today),
+                          onTap: () => _selectDate(isStartDate: true),
+                        ),
+                        ListTile(
+                          title: const Text('Date de fin (optionnel)'),
+                          subtitle: Text(
+                            _endDate != null
+                                ? _dateFormat.format(_endDate!)
+                                : 'Durée indéterminée',
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (_endDate != null)
+                                IconButton(
+                                  icon: const Icon(Icons.clear, size: 20, color: Colors.red),
+                                  onPressed: () => setState(() => _endDate = null),
+                                ),
+                              const Icon(Icons.calendar_today),
+                            ],
+                          ),
+                          onTap: () => _selectDate(isStartDate: false),
+                        ),
+                        const SizedBox(height: 16),
+                        CustomTextField(
+                          controller: _rentController,
+                          label: 'Loyer mensuel (€) *',
+                          hint: 'Ex: 950.00',
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Veuillez entrer le loyer';
+                            }
+                            final amount = double.tryParse(value);
+                            if (amount == null) {
+                              return 'Veuillez entrer un montant valide';
+                            }
+                            if (amount <= 0) {
+                              return 'Le loyer doit être supérieur à 0';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        CustomTextField(
+                          controller: _depositController,
+                          label: 'Garantie locative (€) - optionnel',
+                          hint: 'Ex: 1900.00',
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          validator: (value) {
+                            if (value != null && value.isNotEmpty) {
+                              final amount = double.tryParse(value);
+                              if (amount == null) {
+                                return 'Veuillez entrer un montant valide';
+                              }
+                              if (amount < 0) {
+                                return 'Le montant ne peut pas être négatif';
+                              }
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        CustomTextField(
+                          controller: _chargesController,
+                          label: 'Charges mensuelles (€) - optionnel',
+                          hint: 'Ex: 150.00',
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          validator: (value) {
+                            if (value != null && value.isNotEmpty) {
+                              final amount = double.tryParse(value);
+                              if (amount == null) {
+                                return 'Veuillez entrer un montant valide';
+                              }
+                              if (amount < 0) {
+                                return 'Le montant ne peut pas être négatif';
+                              }
+                            }
+                            return null;
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Bouton principal avec texte adaptatif
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    // Si l'écran est petit, on utilise un texte plus court
+                    final buttonText = constraints.maxWidth < 400
+                        ? 'Créer contrat et état des lieux'
+                        : 'Enregistrer et créer un état de lieu d\'entrée';
+
+                    return CustomButton(
+                      text: buttonText,
+                      onPressed: _isLoading ? null : _createContractAndNavigateToInventory,
+                      isLoading: _isLoading,
+                    );
+                  },
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
+
+            // Indicateur de chargement global
+            if (_isLoading)
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: LinearProgressIndicator(
+                  backgroundColor: Colors.grey.shade200,
+                  valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Détails du contrat',
-                      style: AppTheme.titleStyle.copyWith(fontSize: 18),
-                    ),
-                    const SizedBox(height: 16),
-                    ListTile(
-                      title: const Text('Date de début'),
-                      subtitle: Text(
-                        _startDate != null
-                            ? '${_startDate!.day}/${_startDate!.month}/${_startDate!.year}'
-                            : 'Non définie',
-                      ),
-                      trailing: const Icon(Icons.calendar_today),
-                      onTap: () async {
-                        final date = await showDatePicker(
-                          context: context,
-                          initialDate: DateTime.now(),
-                          firstDate: DateTime.now(),
-                          lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
-                        );
-                        if (date != null) {
-                          setState(() => _startDate = date);
-                        }
-                      },
-                    ),
-                    ListTile(
-                      title: const Text('Date de fin (optionnel)'),
-                      subtitle: Text(
-                        _endDate != null
-                            ? '${_endDate!.day}/${_endDate!.month}/${_endDate!.year}'
-                            : 'Durée indéterminée',
-                      ),
-                      trailing: const Icon(Icons.calendar_today),
-                      onTap: () async {
-                        final date = await showDatePicker(
-                          context: context,
-                          initialDate: _startDate?.add(const Duration(days: 365)) ?? DateTime.now().add(const Duration(days: 365)),
-                          firstDate: _startDate ?? DateTime.now(),
-                          lastDate: DateTime.now().add(const Duration(days: 365 * 20)),
-                        );
-                        if (date != null) {
-                          setState(() => _endDate = date);
-                        }
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    CustomTextField(
-                      controller: _rentController,
-                      label: 'Loyer mensuel (€)',
-                      hint: 'Ex: 950.00',
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Veuillez entrer le loyer';
-                        }
-                        if (double.tryParse(value) == null) {
-                          return 'Veuillez entrer un montant valide';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    CustomTextField(
-                      controller: _depositController,
-                      label: 'Garantie locative (€) - optionnel',
-                      hint: 'Ex: 1900.00',
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    ),
-                    const SizedBox(height: 16),
-                    CustomTextField(
-                      controller: _chargesController,
-                      label: 'Charges mensuelles (€) - optionnel',
-                      hint: 'Ex: 150.00',
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            CustomButton(
-              text: 'Enregistrer et créer un état de lieu d\'entrée',
-              onPressed: _isLoading ? null : _createContractAndNavigateToInventory,
-              isLoading: _isLoading,
-            ),
-            const SizedBox(height: 16),
           ],
         ),
       ),

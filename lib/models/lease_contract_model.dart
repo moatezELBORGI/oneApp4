@@ -52,13 +52,9 @@ class LeaseContractModel {
       id: json['id'],
       apartmentId: json['apartmentId'],
       ownerId: json['ownerId'],
-      ownerName: json['owner'] != null
-          ? '${json['owner']['fname']} ${json['owner']['lname']}'
-          : '',
+      ownerName: json['ownerName']  ,
       tenantId: json['tenantId'],
-      tenantName: json['tenant'] != null
-          ? '${json['tenant']['fname']} ${json['tenant']['lname']}'
-          : '',
+      tenantName: json['tenantName']  ,
       startDate: DateTime.parse(json['startDate']),
       endDate: json['endDate'] != null ? DateTime.parse(json['endDate']) : null,
       initialRentAmount: (json['initialRentAmount'] as num).toDouble(),

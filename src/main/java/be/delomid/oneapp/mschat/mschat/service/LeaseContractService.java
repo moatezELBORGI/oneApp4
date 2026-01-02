@@ -154,10 +154,14 @@ public class LeaseContractService {
     }
 
     private LeaseContractDto convertToDto(LeaseContract contract) {
+        log.info( contract.getOwner().getFname() + " " + contract.getOwner().getLname() +"//////"+
+                  contract.getTenant().getFname() + " " + contract.getTenant().getLname());
         return LeaseContractDto.builder()
                 .id(contract.getId().toString())
                 .apartmentId(contract.getApartment().getIdApartment())
                 .ownerId(contract.getOwner().getIdUsers())
+                .ownerName(contract.getOwner().getFname() + " " + contract.getOwner().getLname())
+                .tenantName(contract.getTenant().getFname() + " " + contract.getTenant().getLname())
                 .tenantId(contract.getTenant().getIdUsers())
                 .startDate(contract.getStartDate())
                 .endDate(contract.getEndDate())

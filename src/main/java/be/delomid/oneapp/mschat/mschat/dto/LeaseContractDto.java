@@ -22,6 +22,8 @@ public class LeaseContractDto {
     private String apartmentId;
     private ApartmentDto apartment;
     private String ownerId;
+    private String ownerName;
+    private String tenantName;
     private ResidentDto owner;
     private String tenantId;
     private ResidentDto tenant;

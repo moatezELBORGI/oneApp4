@@ -72,7 +72,7 @@ class MGIApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => CallProvider())
       ],
       child: MaterialApp(
-        title: 'MGI',
+        title: 'Immo One App',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
         home: const SplashScreen(),

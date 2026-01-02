@@ -115,7 +115,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                     ),
                     const SizedBox(height: 10),
                     const Text(
-                      'Messagerie Gestion Immobilière',
+                      'Immo One App By DELOMID-IT',
                       style: TextStyle(
                         fontSize: 16,
                         color: Colors.white70,

@@ -83,7 +83,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: 20),
                       const Text(
-                        'MGI',
+                        'Immo One App',
                         style: TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
@@ -185,13 +185,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   },
                 ),
                 
-                const SizedBox(height: 30),
-                ItsmeButton(
-                  onPressed: () {
-                    // TODO: implémenter l'intégration itsme ici
-                    print("Connexion via itsme");
-                  },
-                ),
+
                 const SizedBox(height: 20),
 
                 // Forgot Password
@@ -205,21 +199,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 20),
 
                 // Register Link
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      'Pas encore de compte ? ',
-                      style: TextStyle(color: AppTheme.textSecondary),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        // TODO: Navigate to register screen
-                      },
-                      child: const Text('S\'inscrire'),
-                    ),
-                  ],
-                ),
+
               ],
             ),
           ),

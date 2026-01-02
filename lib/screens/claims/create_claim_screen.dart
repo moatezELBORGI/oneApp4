@@ -233,7 +233,7 @@ class _CreateClaimScreenState extends State<CreateClaimScreen> with SingleTicker
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text('Déclarer un sinistre'),
+        title: const Text('Déclarer un sinistre',  style: TextStyle(color: Colors.white)),
         elevation: 0,
         centerTitle: true,
         flexibleSpace: Container(

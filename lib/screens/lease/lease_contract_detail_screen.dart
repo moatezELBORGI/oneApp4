@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../models/lease_contract_model.dart';
 import '../../services/lease_contract_service.dart';
+import '../../utils/app_theme.dart';
 import '../../widgets/signature_pad_widget.dart';
 
 class LeaseContractDetailScreen extends StatefulWidget {
@@ -37,9 +38,7 @@ class _LeaseContractDetailScreenState extends State<LeaseContractDetailScreen> {
     } catch (e) {
       setState(() => _isLoading = false);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e')),
-        );
+        _showSnackBar('Erreur: $e', isError: true);
       }
     }
   }
@@ -54,16 +53,12 @@ class _LeaseContractDetailScreenState extends State<LeaseContractDetailScreen> {
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Contrat signé avec succès')),
-        );
+        _showSnackBar('Contrat signé avec succès', isError: false);
       }
       _loadContract();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur lors de la signature: $e')),
-        );
+        _showSnackBar('Erreur lors de la signature: $e', isError: true);
       }
     } finally {
       setState(() => _isSigning = false);
@@ -88,18 +83,14 @@ class _LeaseContractDetailScreenState extends State<LeaseContractDetailScreen> {
       final pdfUrl = await _leaseService.generateContractPdf(widget.contractId);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('PDF généré avec succès')),
-        );
+        _showSnackBar('PDF généré avec succès', isError: false);
 
         final Uri url = Uri.parse(pdfUrl);
         if (await canLaunchUrl(url)) {
           await launchUrl(url, mode: LaunchMode.externalApplication);
         } else {
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Impossible d\'ouvrir le PDF: $pdfUrl')),
-            );
+            _showSnackBar('Impossible d\'ouvrir le PDF', isError: true);
           }
         }
       }
@@ -107,343 +98,554 @@ class _LeaseContractDetailScreenState extends State<LeaseContractDetailScreen> {
       _loadContract();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur lors de la génération du PDF: $e')),
-        );
+        _showSnackBar('Erreur lors de la génération du PDF: $e', isError: true);
       }
     } finally {
       setState(() => _isGeneratingPdf = false);
     }
   }
 
+  void _showSnackBar(String message, {required bool isError}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? AppTheme.errorColor : AppTheme.successColor,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(16),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Détails du Contrat')),
-        body: const Center(child: CircularProgressIndicator()),
-      );
-    }
+
 
     if (_contract == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Détails du Contrat')),
-        body: const Center(child: Text('Contrat introuvable')),
+        backgroundColor: AppTheme.backgroundColor,
+        appBar: AppBar(
+          title: const Text('Détails du Contrat'),
+          backgroundColor: Colors.white,
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline, size: 64, color: AppTheme.textSecondary),
+              const SizedBox(height: 16),
+              Text('Contrat introuvable', style: AppTheme.subtitleStyle),
+            ],
+          ),
+        ),
       );
     }
 
+    final bool isFullySigned = _contract!.ownerSignedAt != null && _contract!.tenantSignedAt != null;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Contrat de Bail'),
-        elevation: 0,
+        title:  Text('Contrat de Bail',   style: AppTheme.titleStyle.copyWith(
+          color: Colors.white,
+          fontSize: 16,
+        ),),
+        backgroundColor: AppTheme.primaryColor,
+        actions: [
+          if (_contract!.pdfUrl != null && _contract!.pdfUrl!.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.picture_as_pdf, color: AppTheme.errorColor),
+              onPressed: () async {
+                try {
+                  final Uri url = Uri.parse(_contract!.pdfUrl!);
+                  if (await canLaunchUrl(url)) {
+                    await launchUrl(url, mode: LaunchMode.externalApplication);
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    _showSnackBar('Erreur: $e', isError: true);
+                  }
+                }
+              },
+              tooltip: 'Voir le PDF',
+            ),
+        ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: isFullySigned
+          ? FloatingActionButton.extended(
         onPressed: _isGeneratingPdf ? null : _generateAndOpenPdf,
         icon: _isGeneratingPdf
             ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-              )
+          width: 20,
+          height: 20,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+          ),
+        )
             : const Icon(Icons.picture_as_pdf),
         label: Text(_isGeneratingPdf ? 'Génération...' : 'Générer PDF'),
-        backgroundColor: _isGeneratingPdf ? Colors.grey : Colors.red,
-      ),
+        backgroundColor: _isGeneratingPdf ? AppTheme.textSecondary : AppTheme.errorColor,
+        elevation: 4,
+      )
+          : null,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            // Status Badge
+            if (isFullySigned)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                decoration: BoxDecoration(
+                  color: AppTheme.successColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppTheme.successColor.withOpacity(0.3)),
+                ),
+                child: Row(
                   children: [
-                    const Text(
-                      'Informations générales',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
+                    Icon(Icons.verified, color: AppTheme.successColor, size: 24),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Contrat Actif',
+                            style: AppTheme.subtitleStyle.copyWith(
+                              color: AppTheme.successColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Text(
+                            'Toutes les signatures sont complètes',
+                            style: AppTheme.captionStyle.copyWith(
+                              color: AppTheme.successColor,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    _buildInfoRow('Appartement', _contract!.apartmentId.split('-').last),
-                    _buildInfoRow('Propriétaire', _contract!.ownerName),
-                    _buildInfoRow('Locataire', _contract!.tenantName),
-                    _buildInfoRow('Date de début', '${_contract!.startDate.day}/${_contract!.startDate.month}/${_contract!.startDate.year}'),
-                    if (_contract!.endDate != null)
-                      _buildInfoRow('Date de fin', '${_contract!.endDate!.day}/${_contract!.endDate!.month}/${_contract!.endDate!.year}'),
                   ],
                 ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Informations financières',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    _buildInfoRow('Loyer initial', '${_contract!.initialRentAmount.toStringAsFixed(2)} €'),
-                    _buildInfoRow('Loyer actuel', '${_contract!.currentRentAmount.toStringAsFixed(2)} €', highlight: true),
-                    if (_contract!.depositAmount != null)
-                      _buildInfoRow('Caution', '${_contract!.depositAmount!.toStringAsFixed(2)} €'),
-                    if (_contract!.chargesAmount != null)
-                      _buildInfoRow('Charges', '${_contract!.chargesAmount!.toStringAsFixed(2)} €'),
-                  ],
+              )
+            else
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                decoration: BoxDecoration(
+                  color: AppTheme.warningColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppTheme.warningColor.withOpacity(0.3)),
                 ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Row(
                   children: [
-                    const Text(
-                      'Signatures',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
+                    Icon(Icons.pending_actions, color: AppTheme.warningColor, size: 24),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'En attente de signature',
+                            style: AppTheme.subtitleStyle.copyWith(
+                              color: AppTheme.warningColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Text(
+                            'Le contrat nécessite des signatures',
+                            style: AppTheme.captionStyle.copyWith(
+                              color: AppTheme.warningColor,
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            children: [
-                              Icon(
-                                _contract!.ownerSignedAt != null
-                                    ? Icons.check_circle
-                                    : Icons.pending,
-                                color: _contract!.ownerSignedAt != null
-                                    ? Colors.green
-                                    : Colors.orange,
-                                size: 40,
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Propriétaire',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: _contract!.ownerSignedAt != null
-                                      ? Colors.green
-                                      : Colors.orange,
-                                ),
-                              ),
-                              if (_contract!.ownerSignedAt != null)
-                                Text(
-                                  'Signé le ${_contract!.ownerSignedAt!.day}/${_contract!.ownerSignedAt!.month}/${_contract!.ownerSignedAt!.year}',
-                                  style: const TextStyle(fontSize: 12),
-                                ),
-                              if (_contract!.ownerSignedAt == null)
-                                const SizedBox(height: 8),
-                              if (_contract!.ownerSignedAt == null)
-                                ElevatedButton(
-                                  onPressed: _isSigning ? null : () => _showSignatureDialog(true),
-                                  child: const Text('Signer'),
-                                ),
-                            ],
-                          ),
-                        ),
-                        Expanded(
-                          child: Column(
-                            children: [
-                              Icon(
-                                _contract!.tenantSignedAt != null
-                                    ? Icons.check_circle
-                                    : Icons.pending,
-                                color: _contract!.tenantSignedAt != null
-                                    ? Colors.green
-                                    : Colors.orange,
-                                size: 40,
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Locataire',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: _contract!.tenantSignedAt != null
-                                      ? Colors.green
-                                      : Colors.orange,
-                                ),
-                              ),
-                              if (_contract!.tenantSignedAt != null)
-                                Text(
-                                  'Signé le ${_contract!.tenantSignedAt!.day}/${_contract!.tenantSignedAt!.month}/${_contract!.tenantSignedAt!.year}',
-                                  style: const TextStyle(fontSize: 12),
-                                ),
-                              if (_contract!.tenantSignedAt == null)
-                                const SizedBox(height: 8),
-                              if (_contract!.tenantSignedAt == null)
-                                ElevatedButton(
-                                  onPressed: _isSigning ? null : () => _showSignatureDialog(false),
-                                  child: const Text('Signer'),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ],
                     ),
                   ],
                 ),
               ),
-            ),
-            if (_contract!.pdfUrl != null && _contract!.pdfUrl!.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              Card(
-                color: Colors.red.shade50,
-                child: InkWell(
-                  onTap: () async {
-                    try {
-                      final Uri url = Uri.parse(_contract!.pdfUrl!);
-                      if (await canLaunchUrl(url)) {
-                        await launchUrl(url, mode: LaunchMode.externalApplication);
-                      }
-                    } catch (e) {
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Erreur: $e')),
-                        );
-                      }
-                    }
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.picture_as_pdf, color: Colors.red, size: 40),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'PDF du Contrat',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Cliquez pour ouvrir le PDF',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const Icon(Icons.arrow_forward_ios, color: Colors.grey),
-                      ],
-                    ),
+
+            const SizedBox(height: 20),
+
+            // Informations générales
+            _buildSectionCard(
+              title: 'Informations générales',
+              icon: Icons.info_outline,
+              children: [
+                _buildInfoRow(
+                  icon: Icons.apartment,
+                  label: 'Appartement',
+                  value: _contract!.apartmentId.split('-').last,
+                ),
+                const Divider(height: 24),
+                _buildInfoRow(
+                  icon: Icons.person_outline,
+                  label: 'Propriétaire',
+                  value: _contract!.ownerName,
+                ),
+                const Divider(height: 24),
+                _buildInfoRow(
+                  icon: Icons.person,
+                  label: 'Locataire',
+                  value: _contract!.tenantName,
+                ),
+                const Divider(height: 24),
+                _buildInfoRow(
+                  icon: Icons.calendar_today,
+                  label: 'Date de début',
+                  value: _formatDate(_contract!.startDate),
+                ),
+                if (_contract!.endDate != null) ...[
+                  const Divider(height: 24),
+                  _buildInfoRow(
+                    icon: Icons.event,
+                    label: 'Date de fin',
+                    value: _formatDate(_contract!.endDate!),
                   ),
+                ],
+              ],
+            ),
+
+            const SizedBox(height: 16),
+
+            // Informations financières
+            _buildSectionCard(
+              title: 'Informations financières',
+              icon: Icons.euro,
+              children: [
+                _buildFinancialRow(
+                  label: 'Loyer initial',
+                  value: _contract!.initialRentAmount,
+                  icon: Icons.attach_money,
                 ),
-              ),
-            ],
+                const Divider(height: 24),
+                _buildFinancialRow(
+                  label: 'Loyer actuel',
+                  value: _contract!.currentRentAmount,
+                  icon: Icons.payments,
+                  isHighlighted: true,
+                ),
+                if (_contract!.depositAmount != null) ...[
+                  const Divider(height: 24),
+                  _buildFinancialRow(
+                    label: 'Caution',
+                    value: _contract!.depositAmount!,
+                    icon: Icons.security,
+                  ),
+                ],
+                if (_contract!.chargesAmount != null) ...[
+                  const Divider(height: 24),
+                  _buildFinancialRow(
+                    label: 'Charges',
+                    value: _contract!.chargesAmount!,
+                    icon: Icons.receipt_long,
+                  ),
+                ],
+              ],
+            ),
+
+            const SizedBox(height: 16),
+
+            // Signatures
+            _buildSectionCard(
+              title: 'Signatures',
+              icon: Icons.draw,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildSignatureCard(
+                        title: 'Propriétaire',
+                        name: _contract!.ownerName,
+                        signedAt: _contract!.ownerSignedAt,
+                        onSign: () => _showSignatureDialog(true),
+                        isSigning: _isSigning,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildSignatureCard(
+                        title: 'Locataire',
+                        name: _contract!.tenantName,
+                        signedAt: _contract!.tenantSignedAt,
+                        onSign: () => _showSignatureDialog(false),
+                        isSigning: _isSigning,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+
             if (_contract!.indexations.isNotEmpty) ...[
               const SizedBox(height: 16),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Historique des indexations',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+              _buildSectionCard(
+                title: 'Historique des indexations',
+                icon: Icons.trending_up,
+                children: _contract!.indexations.map((indexation) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryColor.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: AppTheme.primaryColor.withOpacity(0.1),
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      ..._contract!.indexations.map((indexation) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: AppTheme.primaryColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(
+                              Icons.show_chart,
+                              color: AppTheme.primaryColor,
+                              size: 24,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  _formatDate(indexation.indexationDate),
+                                  style: AppTheme.bodyStyle.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'Taux: ${(indexation.indexationRate * 100).toStringAsFixed(2)}%',
+                                  style: AppTheme.captionStyle,
+                                ),
+                              ],
+                            ),
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    '${indexation.indexationDate.day}/${indexation.indexationDate.month}/${indexation.indexationDate.year}',
-                                    style: const TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                  Text(
-                                    'Taux: ${(indexation.indexationRate * 100).toStringAsFixed(2)}%',
-                                    style: const TextStyle(fontSize: 12, color: Colors.grey),
-                                  ),
-                                ],
+                              Text(
+                                '${indexation.newAmount.toStringAsFixed(2)} €',
+                                style: AppTheme.subtitleStyle.copyWith(
+                                  color: AppTheme.primaryColor,
+                                  fontWeight: FontWeight.w700,
+                                ),
                               ),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Text(
-                                    '${indexation.newAmount.toStringAsFixed(2)} €',
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.blue,
-                                    ),
-                                  ),
-                                  Text(
-                                    'Avant: ${indexation.previousAmount.toStringAsFixed(2)} €',
-                                    style: const TextStyle(fontSize: 12, color: Colors.grey),
-                                  ),
-                                ],
+                              Text(
+                                'Avant: ${indexation.previousAmount.toStringAsFixed(2)} €',
+                                style: AppTheme.captionStyle,
                               ),
                             ],
                           ),
-                        );
-                      }).toList(),
-                    ],
-                  ),
-                ),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList(),
               ),
             ],
+
+            const SizedBox(height: 80),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildInfoRow(String label, String value, {bool highlight = false}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(color: Colors.grey),
+  Widget _buildSectionCard({
+    required String title,
+    required IconData icon,
+    required List<Widget> children,
+  }) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(icon, color: AppTheme.primaryColor, size: 20),
+                ),
+                const SizedBox(width: 12),
+                Text(title, style: AppTheme.titleStyle),
+              ],
+            ),
+            const SizedBox(height: 20),
+            ...children,
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow({
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: AppTheme.textSecondary),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: AppTheme.captionStyle),
+              const SizedBox(height: 4),
+              Text(
+                value,
+                style: AppTheme.bodyStyle.copyWith(fontWeight: FontWeight.w500),
+              ),
+            ],
           ),
-          Text(
-            value,
-            style: TextStyle(
-              fontWeight: highlight ? FontWeight.bold : FontWeight.normal,
-              color: highlight ? Colors.blue : Colors.black,
-              fontSize: highlight ? 18 : 14,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFinancialRow({
+    required String label,
+    required double value,
+    required IconData icon,
+    bool isHighlighted = false,
+  }) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: isHighlighted
+                ? AppTheme.primaryColor.withOpacity(0.1)
+                : AppTheme.textSecondary.withOpacity(0.05),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(
+            icon,
+            size: 24,
+            color: isHighlighted ? AppTheme.primaryColor : AppTheme.textSecondary,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            label,
+            style: AppTheme.bodyStyle.copyWith(
+              fontWeight: isHighlighted ? FontWeight.w600 : FontWeight.w400,
             ),
           ),
+        ),
+        Text(
+          '${value.toStringAsFixed(2)} €',
+          style: AppTheme.subtitleStyle.copyWith(
+            color: isHighlighted ? AppTheme.primaryColor : AppTheme.textPrimary,
+            fontWeight: FontWeight.w700,
+            fontSize: isHighlighted ? 20 : 16,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSignatureCard({
+    required String title,
+    required String name,
+    required DateTime? signedAt,
+    required VoidCallback onSign,
+    required bool isSigning,
+  }) {
+    final bool isSigned = signedAt != null;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isSigned
+            ? AppTheme.successColor.withOpacity(0.05)
+            : AppTheme.warningColor.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isSigned
+              ? AppTheme.successColor.withOpacity(0.3)
+              : AppTheme.warningColor.withOpacity(0.3),
+        ),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            isSigned ? Icons.check_circle : Icons.pending,
+            color: isSigned ? AppTheme.successColor : AppTheme.warningColor,
+            size: 48,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            title,
+            style: AppTheme.bodyStyle.copyWith(
+              fontWeight: FontWeight.w600,
+              color: isSigned ? AppTheme.successColor : AppTheme.warningColor,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            name,
+            style: AppTheme.captionStyle,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 12),
+          if (isSigned)
+            Text(
+              'Signé le\n${_formatDate(signedAt)}',
+              style: AppTheme.captionStyle.copyWith(
+                color: AppTheme.successColor,
+              ),
+              textAlign: TextAlign.center,
+            )
+          else
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: isSigning ? null : onSign,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryColor,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: Text(
+                  'Signer',
+                  style: AppTheme.bodyStyle.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
   }
 }

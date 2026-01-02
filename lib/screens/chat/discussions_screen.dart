@@ -31,7 +31,6 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    // Vérifier si le bâtiment a changé
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final currentBuildingId = authProvider.user?.buildingId;
 
@@ -76,8 +75,8 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        title: const Text('Discussions'),
-        backgroundColor: Colors.white,
+        title: const Text('Discussions', style: AppTheme.titleStyle),
+        backgroundColor: AppTheme.surfaceColor,
         elevation: 0,
         actions: [
           const BuildingContextIndicator(),
@@ -90,8 +89,13 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
                 ),
               );
             },
-            icon: const Icon(Icons.chat_bubble_outline),
+            icon: const Icon(
+              Icons.add_comment_outlined,
+              color: AppTheme.primaryColor,
+            ),
+            tooltip: 'Nouvelle discussion',
           ),
+          const SizedBox(width: 4),
         ],
       ),
       body: Consumer<ChannelProvider>(
@@ -101,33 +105,80 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
           print('DEBUG: error: ${channelProvider.error}');
           print('DEBUG: channels count: ${channelProvider.channels.length}');
 
-          // Si on a des channels mais le widget ne s'affiche pas, forcer le rebuild
           if (channelProvider.channels.isNotEmpty && !channelProvider.isLoading) {
             print('DEBUG: We have ${channelProvider.channels.length} channels, displaying them');
           }
 
           if (channelProvider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (channelProvider.error != null) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.error_outline, size: 64, color: Colors.grey[400]),
+                  const CircularProgressIndicator(
+                    color: AppTheme.primaryColor,
+                  ),
                   const SizedBox(height: 16),
                   Text(
-                    'Erreur: ${channelProvider.error}',
-                    style: TextStyle(color: Colors.grey[600]),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: _loadDiscussions,
-                    child: const Text('Réessayer'),
+                    'Chargement des discussions...',
+                    style: AppTheme.bodyStyle.copyWith(
+                      color: AppTheme.textSecondary,
+                    ),
                   ),
                 ],
+              ),
+            );
+          }
+
+          if (channelProvider.error != null) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppTheme.errorColor.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.error_outline,
+                        size: 48,
+                        color: AppTheme.errorColor,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Oups ! Une erreur est survenue',
+                      style: AppTheme.subtitleStyle.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      channelProvider.error!,
+                      style: AppTheme.bodyStyle.copyWith(
+                        color: AppTheme.textSecondary,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton.icon(
+                      onPressed: _loadDiscussions,
+                      icon: const Icon(Icons.refresh, size: 20),
+                      label: const Text('Réessayer'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryColor,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             );
           }
@@ -136,45 +187,77 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
 
           if (directChannels.isEmpty) {
             return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.chat_outlined, size: 64, color: Colors.grey[400]),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Aucune discussion',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.grey[600],
+              child: Padding(
+                padding: const EdgeInsets.all(32.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryColor.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.chat_bubble_outline,
+                        size: 64,
+                        color: AppTheme.primaryColor,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Commencez une nouvelle discussion',
-                    style: TextStyle(color: Colors.grey[500]),
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const NewDiscussionScreen(),
+                    const SizedBox(height: 24),
+                    Text(
+                      'Aucune discussion',
+                      style: AppTheme.titleStyle.copyWith(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Commencez à échanger avec vos voisins\nen démarrant une nouvelle conversation',
+                      style: AppTheme.bodyStyle.copyWith(
+                        color: AppTheme.textSecondary,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 32),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const NewDiscussionScreen(),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.add, size: 22),
+                      label: const Text('Nouvelle discussion'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryColor,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 28,
+                          vertical: 14,
                         ),
-                      );
-                    },
-                    icon: const Icon(Icons.add),
-                    label: const Text('Nouvelle discussion'),
-                  ),
-                ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             );
           }
 
           return RefreshIndicator(
             onRefresh: () async => _loadDiscussions(),
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
+            color: AppTheme.primaryColor,
+            child: ListView.separated(
+              padding: const EdgeInsets.symmetric(vertical: 8),
               itemCount: directChannels.length,
+              separatorBuilder: (context, index) => Divider(
+                height: 1,
+                thickness: 1,
+                color: Colors.grey.shade200,
+                indent: 72,
+              ),
               itemBuilder: (context, index) {
                 final channel = directChannels[index];
                 return _buildDiscussionCard(channel);
@@ -183,20 +266,7 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
           );
         },
       ),
-      floatingActionButton: SafeArea(
-        child: FloatingActionButton(
-          heroTag: "discussions_fab",
-          onPressed: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => const NewDiscussionScreen(),
-              ),
-            );
-          },
-          backgroundColor: AppTheme.primaryColor,
-          child: const Icon(Icons.add),
-        ),
-      ),
+
     );
   }
 
@@ -204,68 +274,15 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final currentUserId = authProvider.user?.id;
     final isReceivedMessage = channel.lastMessage != null &&
-                              channel.lastMessage!.senderId != currentUserId;
+        channel.lastMessage!.senderId != currentUserId;
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      color: isReceivedMessage ? Colors.blue.shade50 : Colors.white,
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
-          child: const Icon(
-            Icons.person,
-            color: AppTheme.primaryColor,
-          ),
-        ),
-        title: Text(
-          channel.name,
-          style: const TextStyle(
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        subtitle: channel.lastMessage != null
-            ? Text(
-          channel.lastMessage!.content,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            color: isReceivedMessage ? Colors.blue[900] : Colors.grey[600],
-            fontWeight: isReceivedMessage ? FontWeight.w500 : FontWeight.normal,
-          ),
-        )
-            : Text(
-          'Aucun message',
-          style: TextStyle(
-            color: Colors.grey[500],
-            fontStyle: FontStyle.italic,
-          ),
-        ),
-        trailing: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            if (channel.lastMessage != null)
-              Text(
-                _formatTime(channel.lastMessage!.createdAt),
-                style: TextStyle(
-                  fontSize: 12,
-                  color: isReceivedMessage ? Colors.blue[700] : AppTheme.textSecondary,
-                  fontWeight: isReceivedMessage ? FontWeight.w600 : FontWeight.normal,
-                ),
-              ),
-            if (isReceivedMessage)
-              const SizedBox(height: 4),
-              Container(
-                width: 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  color: Colors.blue,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-            ],
+    final hasUnreadMessage = isReceivedMessage;
 
-        ),
+    return Material(
+      color: hasUnreadMessage
+          ? AppTheme.primaryColor.withOpacity(0.05)
+          : AppTheme.surfaceColor,
+      child: InkWell(
         onTap: () {
           Navigator.of(context).push(
             MaterialPageRoute(
@@ -273,6 +290,138 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
             ),
           );
         },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            children: [
+              // Avatar avec badge
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: hasUnreadMessage
+                            ? AppTheme.primaryColor.withOpacity(0.3)
+                            : Colors.grey.shade200,
+                        width: 2,
+                      ),
+                    ),
+                    child: CircleAvatar(
+                      radius: 28,
+                      backgroundColor: hasUnreadMessage
+                          ? AppTheme.primaryColor.withOpacity(0.15)
+                          : AppTheme.primaryColor.withOpacity(0.1),
+                      child: Icon(
+                        Icons.person,
+                        color: hasUnreadMessage
+                            ? AppTheme.primaryColor
+                            : AppTheme.textSecondary,
+                        size: 28,
+                      ),
+                    ),
+                  ),
+                  if (hasUnreadMessage)
+                    Positioned(
+                      right: -2,
+                      top: -2,
+                      child: Container(
+                        width: 14,
+                        height: 14,
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryColor,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: AppTheme.surfaceColor,
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(width: 16),
+
+              // Contenu
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            channel.name,
+                            style: AppTheme.subtitleStyle.copyWith(
+                              fontSize: 16,
+                              fontWeight: hasUnreadMessage
+                                  ? FontWeight.w600
+                                  : FontWeight.w500,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (channel.lastMessage != null) ...[
+                          const SizedBox(width: 8),
+                          Text(
+                            _formatTime(channel.lastMessage!.createdAt),
+                            style: AppTheme.captionStyle.copyWith(
+                              color: hasUnreadMessage
+                                  ? AppTheme.primaryColor
+                                  : AppTheme.textSecondary,
+                              fontWeight: hasUnreadMessage
+                                  ? FontWeight.w600
+                                  : FontWeight.w400,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            channel.lastMessage != null
+                                ? channel.lastMessage!.content
+                                : 'Aucun message',
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTheme.bodyStyle.copyWith(
+                              fontSize: 14,
+                              color: hasUnreadMessage
+                                  ? AppTheme.textPrimary
+                                  : AppTheme.textSecondary,
+                              fontWeight: hasUnreadMessage
+                                  ? FontWeight.w500
+                                  : FontWeight.w400,
+                              fontStyle: channel.lastMessage == null
+                                  ? FontStyle.italic
+                                  : FontStyle.normal,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              // Indicateur de navigation
+              const SizedBox(width: 12),
+              Icon(
+                Icons.chevron_right,
+                color: hasUnreadMessage
+                    ? AppTheme.primaryColor
+                    : AppTheme.textLight,
+                size: 24,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -280,15 +429,24 @@ class _DiscussionsScreenState extends State<DiscussionsScreen> {
   String _formatTime(DateTime dateTime) {
     final now = DateTime.now();
     final difference = now.difference(dateTime);
+    final today = DateTime(now.year, now.month, now.day);
+    final messageDate = DateTime(dateTime.year, dateTime.month, dateTime.day);
 
-    if (difference.inDays > 0) {
-      return '${difference.inDays}j';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours}h';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes}m';
+    if (messageDate == today) {
+      // Aujourd'hui - afficher l'heure
+      return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+    } else if (difference.inDays == 1) {
+      return 'Hier';
+    } else if (difference.inDays < 7) {
+      // Cette semaine - afficher le jour
+      final days = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+      return days[dateTime.weekday - 1];
+    } else if (difference.inDays < 365) {
+      // Cette année - afficher jour/mois
+      return '${dateTime.day}/${dateTime.month}';
     } else {
-      return 'maintenant';
+      // Plus ancien - afficher l'année
+      return '${dateTime.day}/${dateTime.month}/${dateTime.year.toString().substring(2)}';
     }
   }
 }

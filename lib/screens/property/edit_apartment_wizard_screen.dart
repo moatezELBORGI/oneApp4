@@ -5,6 +5,7 @@ import '../../models/apartment_room_complete_model.dart';
 import '../../services/apartment_management_service.dart';
 import '../../services/api_service.dart';
 import '../../services/storage_service.dart';
+import '../../utils/app_theme.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/equipment_selector_widget.dart';
@@ -354,73 +355,111 @@ class _EditApartmentWizardScreenState extends State<EditApartmentWizardScreen>
       _animationController.forward(from: 0);
     }
   }
+  Widget _buildAppBar() {
+    return SliverAppBar(
+      floating: false,
+      pinned: true,
+      elevation: 0,
+      flexibleSpace: FlexibleSpaceBar(
+
+        title: Text(
+          'Modifier l\'appartement',
+          style: AppTheme.titleStyle.copyWith(
+            color: Colors.white,
+            fontSize: 16,
+          ),
+        ),
+        background: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                AppTheme.primaryColor,
+                AppTheme.primaryDark,
+              ],
+            ),
+          ),
+        ),
+      ),
+
+    );
+  }
+
+  Widget _buildLoading() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(
+              Theme.of(context).primaryColor,
+            ),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            'Chargement...',
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.grey[700],
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSaving() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(
+              Theme.of(context).primaryColor,
+            ),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            'Sauvegarde en cours...',
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.grey[700],
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        title: const Text('Modifier l\'appartement'),
-        elevation: 0,
-        centerTitle: true,
-      ),
       body: _isLoading
-          ? Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(
-                Theme.of(context).primaryColor,
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Chargement...',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[700],
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      )
+          ? _buildLoading()
           : _isSaving
-          ? Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(
-                Theme.of(context).primaryColor,
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Sauvegarde en cours...',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[700],
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      )
-          : Column(
-        children: [
-          _buildProgressIndicator(),
-          Expanded(
-            child: FadeTransition(
-              opacity: _fadeAnimation,
-              child: SlideTransition(
-                position: _slideAnimation,
-                child: _buildCurrentStepContent(),
-              ),
+          ? _buildSaving()
+          : CustomScrollView(
+        slivers: [
+          _buildAppBar(), // ✅ SliverAppBar OK here
+          SliverToBoxAdapter(
+            child: Column(
+              children: [
+                _buildProgressIndicator(),
+                FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: SlideTransition(
+                    position: _slideAnimation,
+                    child: _buildCurrentStepContent(),
+                  ),
+                ),
+                _buildNavigationButtons(),
+              ],
             ),
           ),
-          _buildNavigationButtons(),
         ],
       ),
     );
