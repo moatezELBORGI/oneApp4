@@ -26,7 +26,7 @@ public class TurnCredentialsController {
     // ⚠️ DOIT CORRESPONDRE EXACTEMENT à votre turnserver.conf
     private static final String TURN_SECRET = "SuperSecret1234567890abcdef1234567890abcdef";
     private static final String TURN_DOMAIN = "51.91.99.191";
-     private static final int TTL = 600; // 10 minutes
+     private static final int TTL = 3600; // 1 heure (augmenté pour éviter les expirations)
 
     @GetMapping("/turn-credentials")
     public ResponseEntity<Map<String, Object>> getTurnCredentials(

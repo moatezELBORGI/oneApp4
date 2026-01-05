@@ -83,8 +83,6 @@ class WebRTCService {
 
   // Queues
   final List<Map<String, dynamic>> _pendingIceCandidates = [];
-  final List<Map<String, dynamic>> _pendingOutgoingIce = [];
-  Timer? _iceBatchTimer;
 
   // Warmup cache
   Map<String, dynamic>? _cachedTurnConfig;
@@ -401,8 +399,10 @@ class WebRTCService {
           print('$_tag ICE [$type] collecté');
         }
 
-        _pendingOutgoingIce.add(candidate.toMap());
-        _scheduleBatchIceSend();
+        // FIX CRITIQUE: Envoi immédiat des ICE candidates (Trickle ICE)
+        // Ne plus utiliser le batch qui crée des race conditions
+        _sendSignal('ice-candidate', {'candidate': candidate.toMap()});
+        print('$_tag ✓ ICE [$type] envoyé immédiatement');
       }
     };
 
@@ -416,7 +416,7 @@ class WebRTCService {
         } else {
           print('$_tag ✗ ICE Gathering terminé SANS CANDIDATS!');
         }
-        _flushPendingIce();
+        // Plus besoin de flush car les ICE sont envoyés immédiatement
       }
     };
 
@@ -458,30 +458,6 @@ class WebRTCService {
     print('$_tag ✓ PeerConnection configuré');
   }
 
-  void _scheduleBatchIceSend() {
-    _iceBatchTimer?.cancel();
-    _iceBatchTimer = Timer(const Duration(milliseconds: 200), () {
-      if (_pendingOutgoingIce.isNotEmpty) {
-        print('$_tag Envoi batch de ${_pendingOutgoingIce.length} ICE candidates');
-        for (var candidate in List.from(_pendingOutgoingIce)) {
-          _sendSignal('ice-candidate', {'candidate': candidate});
-        }
-        _pendingOutgoingIce.clear();
-      }
-    });
-  }
-
-  // Envoyer immédiatement tous les ICE candidates en attente
-  void _flushPendingIce() {
-    _iceBatchTimer?.cancel();
-    if (_pendingOutgoingIce.isNotEmpty) {
-      print('$_tag Flush immédiat de ${_pendingOutgoingIce.length} ICE candidates');
-      for (var candidate in List.from(_pendingOutgoingIce)) {
-        _sendSignal('ice-candidate', {'candidate': candidate});
-      }
-      _pendingOutgoingIce.clear();
-    }
-  }
 
   /// ========================
   /// PERFECT NEGOTIATION
@@ -506,16 +482,10 @@ class WebRTCService {
       await _peerConnection!.setLocalDescription(offer);
       print('$_tag ✓ LocalDescription (offer) définie');
 
-      // Attendre la collecte des ICE candidates (plus long pour TURN)
-      print('$_tag Attente collecte ICE candidates...');
-      await _waitForIceCandidates();
-
-      // Envoyer l'offre
+      // Envoyer l'offre immédiatement sans attendre tous les ICE
+      // Les ICE candidates seront envoyés au fur et à mesure (Trickle ICE)
       _sendSignal('offer', {'sdp': offer.toMap()});
-      print('$_tag ✓ Offre envoyée');
-
-      // Flush les ICE candidates en attente
-      _flushPendingIce();
+      print('$_tag ✓ Offre envoyée (Trickle ICE activé)');
 
     } catch (e) {
       print('$_tag ✗ Erreur makeOffer: $e');
@@ -524,31 +494,6 @@ class WebRTCService {
     }
   }
 
-  /// Attend que des ICE candidates soient collectés (avec timeout)
-  Future<void> _waitForIceCandidates() async {
-    final startTime = DateTime.now();
-    final maxWait = const Duration(seconds: 5);
-
-    while (DateTime.now().difference(startTime) < maxWait) {
-      // Si on a des relay candidates, c'est parfait
-      if (_hasRelayCandidates) {
-        print('$_tag ✓ RELAY candidates collectés (${DateTime.now().difference(startTime).inMilliseconds}ms)');
-        return;
-      }
-
-      // Si on a au moins des candidates après 2s, on continue
-      if (_hasAnyCandidates && DateTime.now().difference(startTime).inSeconds >= 2) {
-        print('$_tag ✓ ICE candidates collectés sans RELAY (${DateTime.now().difference(startTime).inMilliseconds}ms)');
-        return;
-      }
-
-      await Future.delayed(const Duration(milliseconds: 100));
-    }
-
-    if (!_hasAnyCandidates) {
-      print('$_tag ⚠ Aucun ICE candidate collecté après ${maxWait.inSeconds}s');
-    }
-  }
 
   /// ========================
   /// SIGNAL HANDLING
@@ -876,7 +821,6 @@ class WebRTCService {
     _ignoreOffer = false;
     _isSettingRemoteAnswerPending = false;
     _pendingIceCandidates.clear();
-    _pendingOutgoingIce.clear();
     _hasRelayCandidates = false;
     _hasAnyCandidates = false;
   }
@@ -885,7 +829,6 @@ class WebRTCService {
     print('$_tag Nettoyage...');
     _resetNegotiationState();
 
-    _iceBatchTimer?.cancel();
     _cancelConnectionTimeout();
 
     _localStream?.getTracks().forEach((t) => t.stop());
