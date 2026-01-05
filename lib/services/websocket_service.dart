@@ -17,6 +17,9 @@ class WebSocketService {
   Function()? _callSignalUnsubscribe;
   Function()? _callNotificationUnsubscribe;
 
+  // Queue pour les signaux en attente (FIX pour les ICE candidates perdus)
+  final List<Map<String, dynamic>> _pendingSignals = [];
+
   // Callbacks
   Function(Message)? onMessageReceived;
   Function(String, String, bool)? onTypingReceived;
@@ -74,6 +77,10 @@ class WebSocketService {
   //  _subscribeToCallSignals();
     print('Call signals subscription completed');
     _ensurePermanentCallSubscriptions();  // ← AJOUTE CETTE FONCTION (voir ci-dessous)
+
+    // FIX: Envoyer les signaux en attente
+    _flushPendingSignals();
+
     // Le callback onConnected doit réinitialiser tous les callbacks et subscriptions
     print('Calling onConnected callback...');
     onConnected?.call();
@@ -110,6 +117,13 @@ class WebSocketService {
     print('WebSocket disconnected');
     _isConnected = false;
     _unsubscribeCallSignals();
+
+    // Ne PAS vider la queue en cas de déconnexion
+    // Les signaux seront envoyés à la reconnexion
+    if (_pendingSignals.isNotEmpty) {
+      print('⚠️ WebSocket disconnected with ${_pendingSignals.length} pending signals');
+    }
+
     onDisconnected?.call();
   }
 
@@ -289,8 +303,6 @@ class WebSocketService {
   }
 
   void sendCallSignal(String type, String to, Map<String, dynamic> data, String? channelId) {
-    if (!_isConnected || _stompClient == null) return;
-
     final signalData = {
       'type': type,
       'to': to,
@@ -298,11 +310,38 @@ class WebSocketService {
       if (channelId != null) 'channelId': channelId,
     };
 
-    print('Sending call signal: $type to $to');
+    // FIX CRITIQUE: Si le WebSocket n'est pas connecté, mettre en queue
+    if (!_isConnected || _stompClient == null) {
+      print('⚠️ WebSocket NOT connected! Queuing signal: $type (queue size: ${_pendingSignals.length + 1})');
+      _pendingSignals.add(signalData);
+      return;
+    }
+
+    print('✓ Sending call signal: $type to $to (queue: ${_pendingSignals.length})');
     _stompClient!.send(
       destination: '/app/call.signal',
       body: jsonEncode(signalData),
     );
+  }
+
+  /// Envoie tous les signaux en attente
+  void _flushPendingSignals() {
+    if (_pendingSignals.isEmpty) return;
+
+    print('🚀 Flushing ${_pendingSignals.length} pending signals...');
+
+    for (var signalData in List.from(_pendingSignals)) {
+      if (_isConnected && _stompClient != null) {
+        print('  ↳ Sending queued signal: ${signalData['type']}');
+        _stompClient!.send(
+          destination: '/app/call.signal',
+          body: jsonEncode(signalData),
+        );
+      }
+    }
+
+    _pendingSignals.clear();
+    print('✓ All pending signals flushed');
   }
 
   StompClient? get stompClient => _stompClient;
